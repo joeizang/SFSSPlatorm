@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="src/SFSSPlatform.Api/SFSSPlatform.Api.csproj" />
+  <Project Path="src/SFSSPlatform.Domain/SFSSPlatform.Domain.csproj" />
+  <Project Path="src/SFSSPlatform.Infrastructure/SFSSPlatform.Infrastructure.csproj" />
+  <Project Path="tests/SFSSPlatform.Tests/SFSSPlatform.Tests.csproj" />
 </Solution>

@@ -1,0 +1,98 @@
+@reference "./index.css";
+
+.focus-ring {
+  @apply focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400;
+}
+
+main {
+  color: #e3e8f2;
+}
+
+main .text-slate-500 {
+  color: #9ca9bc;
+}
+
+main .text-slate-400 {
+  color: #b8c2d2;
+}
+
+main .text-slate-300 {
+  color: #d5dce8;
+}
+
+main .text-slate-200 {
+  color: #e5eaf2;
+}
+
+.reader-text {
+  color: #e0e6ef;
+  font-weight: 450;
+}
+
+.reader-code-block code,
+.reader-code-block pre {
+  font-family:
+    "SFMono-Regular",
+    "SF Mono",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
+}
+
+.reader-code-scroll {
+  color: #d6deeb;
+}
+
+.reader-code-block .code-line {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr);
+}
+
+.reader-code-block .line-number {
+  color: #697586;
+  padding-right: 1rem;
+  text-align: right;
+  user-select: none;
+}
+
+.reader-code-block .line-source {
+  min-width: 0;
+}
+
+.reader-code-block .hljs-keyword,
+.reader-code-block .hljs-selector-tag,
+.reader-code-block .hljs-built_in {
+  color: #c792ea;
+}
+
+.reader-code-block .hljs-title,
+.reader-code-block .hljs-title.class_,
+.reader-code-block .hljs-title.function_ {
+  color: #82aaff;
+}
+
+.reader-code-block .hljs-string,
+.reader-code-block .hljs-attr,
+.reader-code-block .hljs-symbol {
+  color: #ecc48d;
+}
+
+.reader-code-block .hljs-number,
+.reader-code-block .hljs-literal,
+.reader-code-block .hljs-variable {
+  color: #f78c6c;
+}
+
+.reader-code-block .hljs-comment,
+.reader-code-block .hljs-quote {
+  color: #7f8c98;
+  font-style: italic;
+}
+
+.reader-code-block .hljs-type,
+.reader-code-block .hljs-params,
+.reader-code-block .hljs-property,
+.reader-code-block .hljs-name {
+  color: #addb67;
+}

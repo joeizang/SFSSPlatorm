@@ -2,8 +2,12 @@ bin/
 obj/
 .idea/
 docs/
+local-sources/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
 src/.DS_Store
 .DS_Store
+*.db
+*.db-shm
+*.db-wal
