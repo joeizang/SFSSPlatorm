@@ -5,3 +5,5 @@ docs/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+src/.DS_Store
+.DS_Store
