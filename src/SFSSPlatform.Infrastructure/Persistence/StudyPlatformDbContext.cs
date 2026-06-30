@@ -25,6 +25,12 @@ public sealed class StudyPlatformDbContext(DbContextOptions<StudyPlatformDbConte
 
     public DbSet<StudyAttempt> StudyAttempts => Set<StudyAttempt>();
 
+    public DbSet<LearningResource> LearningResources => Set<LearningResource>();
+
+    public DbSet<TrustedYouTubeChannel> TrustedYouTubeChannels => Set<TrustedYouTubeChannel>();
+
+    public DbSet<VideoCandidate> VideoCandidates => Set<VideoCandidate>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(StudyPlatformDbContext).Assembly);

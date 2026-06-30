@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
-import { BookOpen, Code2, Library, Repeat2 } from 'lucide-react'
+import { BookOpen, Code2, Library, Repeat2, Video } from 'lucide-react'
 import type { ModuleResponse } from '../features/catalog/types'
 import type { SourceMaterialResponse } from '../features/sources/types'
 
-export type WorkspaceView = 'sources' | 'study' | 'catalog'
+export type WorkspaceView = 'sources' | 'study' | 'videos' | 'catalog'
 
 type AppSidebarProps = {
   activeView: WorkspaceView
@@ -50,6 +50,12 @@ export function AppSidebar({
           icon={<Repeat2 className="h-4 w-4" />}
           label="Study session"
           onClick={() => onSelectView('study')}
+        />
+        <SidebarButton
+          active={activeView === 'videos'}
+          icon={<Video className="h-4 w-4" />}
+          label="Videos"
+          onClick={() => onSelectView('videos')}
         />
         <SidebarButton
           active={activeView === 'catalog'}

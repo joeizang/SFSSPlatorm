@@ -122,6 +122,96 @@ const studySessionNext = {
   },
 }
 
+const videos = [
+  {
+    id: 201,
+    externalId: 'YbRe4iIVYJk',
+    provider: 'youTube',
+    title: '.NET 10 + C# 14 - Full Course 2026 [E-commerce MVC]',
+    creator: '.NET',
+    url: 'https://www.youtube.com/watch?v=YbRe4iIVYJk',
+    embedUrl: 'https://www.youtube-nocookie.com/embed/YbRe4iIVYJk',
+    summary: 'Official .NET channel course material for modern C# and ASP.NET Core application development.',
+    tags: ['aspnet-core', 'backend', 'csharp', 'dotnet', 'official'],
+    durationSeconds: null,
+    topicId: null,
+    sourceMaterialId: null,
+    sourceDocumentChunkId: null,
+    isWatched: false,
+    watchedAt: null,
+    watchProgressSeconds: 0,
+    notes: '',
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+]
+
+const trustedChannels = [
+  {
+    id: 301,
+    name: 'Nick Chapsas',
+    url: 'https://www.youtube.com/@nickchapsas',
+    tags: ['architecture', 'csharp', 'dotnet', 'performance'],
+    priority: 'high',
+    notes: 'High-signal modern .NET and C# engineering.',
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+  {
+    id: 302,
+    name: 'Raw Coding',
+    url: 'https://www.youtube.com/@RawCoding',
+    tags: ['aspnet-core', 'csharp', 'dotnet'],
+    priority: 'high',
+    notes: 'ASP.NET Core and C# implementation depth.',
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+]
+
+const videoCandidates = [
+  {
+    id: 401,
+    externalId: 'R-z2Hv-7nxk',
+    title: 'Deep .NET: Writing async/await from scratch',
+    channelName: 'dotnet',
+    channelUrl: 'https://www.youtube.com/@dotnet',
+    url: 'https://www.youtube.com/watch?v=R-z2Hv-7nxk',
+    embedUrl: 'https://www.youtube-nocookie.com/embed/R-z2Hv-7nxk',
+    summary: 'Stephen Toub and Scott Hanselman break down async and await by building the mechanism from scratch.',
+    tags: ['async', 'csharp', 'dotnet', 'runtime'],
+    difficulty: 'expert',
+    status: 'candidate',
+    notes: 'High-value runtime internals candidate.',
+    rejectionReason: '',
+    learningResourceId: null,
+    acceptedAt: null,
+    rejectedAt: null,
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+  {
+    id: 402,
+    externalId: 'Qwb-Za6cBws',
+    title: 'How To Maximize Performance In Your React Apps',
+    channelName: 'Web Dev Simplified',
+    channelUrl: 'https://www.youtube.com/@WebDevSimplified',
+    url: 'https://www.youtube.com/watch?v=Qwb-Za6cBws',
+    embedUrl: 'https://www.youtube-nocookie.com/embed/Qwb-Za6cBws',
+    summary: 'Practical React performance techniques and profiling-oriented thinking.',
+    tags: ['frontend', 'performance', 'react'],
+    difficulty: 'intermediate',
+    status: 'candidate',
+    notes: 'Good applied frontend performance candidate.',
+    rejectionReason: '',
+    learningResourceId: null,
+    acceptedAt: null,
+    rejectedAt: null,
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+]
+
 describe('App', () => {
   beforeEach(() => {
     vi.stubGlobal(
@@ -220,6 +310,85 @@ describe('App', () => {
           })
         }
 
+        if (url.endsWith('/api/learning-resources/')) {
+          return jsonResponse(videos)
+        }
+
+        if (url.endsWith('/api/learning-resources/import-seed')) {
+          return jsonResponse({ resourcesDiscovered: 6, resourcesCreated: 6, resourcesUpdated: 0 })
+        }
+
+        if (url.endsWith('/api/learning-resources/201/watch-state')) {
+          return jsonResponse({
+            ...videos[0],
+            isWatched: true,
+            notes: 'Strong overview of modern .NET structure.',
+            watchProgressSeconds: 900,
+            watchedAt: '2026-06-30T13:00:00Z',
+          })
+        }
+
+        if (url.endsWith('/api/learning-resources/channels/source-file')) {
+          return jsonResponse({ sourceFile: '/workspace/local-source/youtube/channels.csv' })
+        }
+
+        if (url.endsWith('/api/learning-resources/channels/import-local')) {
+          return jsonResponse({
+            sourceFile: '/workspace/local-source/youtube/channels.csv',
+            channelsDiscovered: 29,
+            channelsCreated: 29,
+            channelsUpdated: 0,
+            channelsSkipped: 0,
+          })
+        }
+
+        if (url.includes('/api/learning-resources/channels/') && init?.method !== 'POST') {
+          return jsonResponse(trustedChannels)
+        }
+
+        if (url.endsWith('/api/learning-resources/candidates/source-file')) {
+          return jsonResponse({ sourceFile: '/workspace/local-source/youtube/video-candidates.csv' })
+        }
+
+        if (url.endsWith('/api/learning-resources/candidates/import-local')) {
+          return jsonResponse({
+            sourceFile: '/workspace/local-source/youtube/video-candidates.csv',
+            candidatesDiscovered: 18,
+            candidatesCreated: 18,
+            candidatesUpdated: 0,
+            candidatesSkipped: 0,
+          })
+        }
+
+        if (url.endsWith('/api/learning-resources/candidates/401/accept')) {
+          return jsonResponse({
+            candidate: { ...videoCandidates[0], status: 'accepted', learningResourceId: 501, acceptedAt: '2026-06-30T13:00:00Z' },
+            resource: {
+              ...videos[0],
+              id: 501,
+              externalId: 'R-z2Hv-7nxk',
+              title: 'Deep .NET: Writing async/await from scratch',
+              creator: 'dotnet',
+              url: 'https://www.youtube.com/watch?v=R-z2Hv-7nxk',
+              embedUrl: 'https://www.youtube-nocookie.com/embed/R-z2Hv-7nxk',
+              tags: ['async', 'csharp', 'dotnet', 'runtime'],
+            },
+          })
+        }
+
+        if (url.endsWith('/api/learning-resources/candidates/402/reject')) {
+          return jsonResponse({
+            ...videoCandidates[1],
+            status: 'rejected',
+            rejectionReason: 'Not a fit for the current study catalog.',
+            rejectedAt: '2026-06-30T13:00:00Z',
+          })
+        }
+
+        if (url.includes('/api/learning-resources/candidates/') && init?.method !== 'POST') {
+          return jsonResponse(videoCandidates)
+        }
+
         return Promise.resolve(new Response(null, { status: 404 }))
       }),
     )
@@ -302,6 +471,70 @@ describe('App', () => {
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'http://localhost:5105/api/study-session/attempts',
         expect.objectContaining({ method: 'POST' }),
+      )
+    })
+  })
+
+  it('embeds curated videos and saves local watch notes', async () => {
+    const user = userEvent.setup()
+    const { container } = renderApp()
+
+    await user.click(await screen.findByRole('button', { name: /^videos$/i }))
+    expect(await screen.findAllByText('.NET 10 + C# 14 - Full Course 2026 [E-commerce MVC]')).toHaveLength(2)
+    expect(await screen.findByText('Nick Chapsas')).toBeInTheDocument()
+    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('https://www.youtube-nocookie.com/embed/YbRe4iIVYJk')
+
+    await user.click(screen.getByRole('button', { name: /import local channels/i }))
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/learning-resources/channels/import-local',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    expect(await screen.findByText('Deep .NET: Writing async/await from scratch')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /import candidates/i }))
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/learning-resources/candidates/import-local',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    await user.click(screen.getAllByRole('button', { name: /^accept$/i })[0])
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/learning-resources/candidates/401/accept',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    await user.click(screen.getAllByRole('button', { name: /^reject$/i })[1])
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/learning-resources/candidates/402/reject',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    await user.click(screen.getByRole('button', { name: /import curated videos/i }))
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/learning-resources/import-seed',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    await user.click(screen.getByRole('checkbox', { name: /watched/i }))
+    await user.clear(screen.getByRole('spinbutton', { name: /progress minutes/i }))
+    await user.type(screen.getByRole('spinbutton', { name: /progress minutes/i }), '15')
+    await user.type(screen.getByPlaceholderText(/capture useful explanations/i), 'Strong overview of modern .NET structure.')
+    await user.click(screen.getByRole('button', { name: /save video notes/i }))
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/learning-resources/201/watch-state',
+        expect.objectContaining({ method: 'PUT' }),
       )
     })
   })

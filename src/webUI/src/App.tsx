@@ -15,6 +15,17 @@ import type {
 import type { GeneratedStudyItemsResponse, StudyItemDraftResponse, StudyItemResponse } from './features/study-items/types'
 import { StudySessionView } from './features/study-session/StudySessionView'
 import type { StudyAttemptRating, StudyAttemptResponse, StudySessionNextResponse, StudySessionSummaryResponse } from './features/study-session/types'
+import { VideoLibraryView } from './features/videos/VideoLibraryView'
+import type {
+  AcceptVideoCandidateResponse,
+  LearningResourceImportResult,
+  LearningResourceResponse,
+  TrustedYouTubeChannelImportResult,
+  TrustedYouTubeChannelResponse,
+  VideoCandidateImportResult,
+  VideoCandidateResponse,
+  VideoCandidateStatus,
+} from './features/videos/types'
 import './App.css'
 
 const emptyModules: ModuleResponse[] = []
@@ -22,16 +33,25 @@ const emptyTopics: TopicSearchResponse[] = []
 const emptySources: SourceMaterialResponse[] = []
 const emptySourceChunks: SourceChunkSummaryResponse[] = []
 const emptyStudyItems: StudyItemResponse[] = []
+const emptyVideos: LearningResourceResponse[] = []
+const emptyChannels: TrustedYouTubeChannelResponse[] = []
+const emptyCandidates: VideoCandidateResponse[] = []
 
 function App() {
   const queryClient = useQueryClient()
   const [activeView, setActiveView] = useState<WorkspaceView>('sources')
   const [catalogSearch, setCatalogSearch] = useState('')
   const [sourceSearch, setSourceSearch] = useState('')
+  const [channelSearch, setChannelSearch] = useState('')
+  const [candidateSearch, setCandidateSearch] = useState('')
+  const [candidateStatus, setCandidateStatus] = useState<VideoCandidateStatus | 'all'>('candidate')
   const [selectedModule, setSelectedModule] = useState<string>('all')
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null)
   const [selectedChunkId, setSelectedChunkId] = useState<number | null>(null)
   const [lastIngestion, setLastIngestion] = useState<LocalPdfIngestionResult | null>(null)
+  const [lastVideoImport, setLastVideoImport] = useState<LearningResourceImportResult | null>(null)
+  const [lastChannelImport, setLastChannelImport] = useState<TrustedYouTubeChannelImportResult | null>(null)
+  const [lastCandidateImport, setLastCandidateImport] = useState<VideoCandidateImportResult | null>(null)
   const [generatedStudyItems, setGeneratedStudyItems] = useState<StudyItemDraftResponse[]>([])
 
   const modulesQuery = useQuery({
@@ -90,6 +110,47 @@ function App() {
     enabled: activeView === 'study',
   })
 
+  const videosQuery = useQuery({
+    queryKey: ['learning-resources'],
+    queryFn: () => api<LearningResourceResponse[]>('/api/learning-resources/'),
+    enabled: activeView === 'videos',
+  })
+
+  const channelsQuery = useQuery({
+    queryKey: ['trusted-youtube-channels', channelSearch],
+    queryFn: () => {
+      const params = new URLSearchParams()
+      if (channelSearch.trim()) params.set('search', channelSearch.trim())
+      const query = params.toString()
+      return api<TrustedYouTubeChannelResponse[]>(`/api/learning-resources/channels/${query ? `?${query}` : ''}`)
+    },
+    enabled: activeView === 'videos',
+  })
+
+  const channelSourceFileQuery = useQuery({
+    queryKey: ['trusted-youtube-channel-source-file'],
+    queryFn: () => api<{ sourceFile: string }>('/api/learning-resources/channels/source-file'),
+    enabled: activeView === 'videos',
+  })
+
+  const videoCandidatesQuery = useQuery({
+    queryKey: ['video-candidates', candidateSearch, candidateStatus],
+    queryFn: () => {
+      const params = new URLSearchParams()
+      if (candidateSearch.trim()) params.set('search', candidateSearch.trim())
+      if (candidateStatus !== 'all') params.set('status', candidateStatus)
+      const query = params.toString()
+      return api<VideoCandidateResponse[]>(`/api/learning-resources/candidates/${query ? `?${query}` : ''}`)
+    },
+    enabled: activeView === 'videos',
+  })
+
+  const videoCandidateSourceFileQuery = useQuery({
+    queryKey: ['video-candidate-source-file'],
+    queryFn: () => api<{ sourceFile: string }>('/api/learning-resources/candidates/source-file'),
+    enabled: activeView === 'videos',
+  })
+
   const importMutation = useMutation({
     mutationFn: () =>
       api('/api/curriculum/import', {
@@ -108,6 +169,33 @@ function App() {
       await queryClient.invalidateQueries({ queryKey: ['sources'] })
       await queryClient.invalidateQueries({ queryKey: ['source-chunks'] })
       await queryClient.invalidateQueries({ queryKey: ['source-chunk'] })
+    },
+  })
+
+  const videoImportMutation = useMutation({
+    mutationFn: () => api<LearningResourceImportResult>('/api/learning-resources/import-seed', { method: 'POST' }),
+    onSuccess: async (result) => {
+      setLastVideoImport(result)
+      await queryClient.invalidateQueries({ queryKey: ['learning-resources'] })
+    },
+  })
+
+  const channelImportMutation = useMutation({
+    mutationFn: () =>
+      api<TrustedYouTubeChannelImportResult>('/api/learning-resources/channels/import-local', { method: 'POST' }),
+    onSuccess: async (result) => {
+      setLastChannelImport(result)
+      await queryClient.invalidateQueries({ queryKey: ['trusted-youtube-channels'] })
+      await queryClient.invalidateQueries({ queryKey: ['trusted-youtube-channel-source-file'] })
+    },
+  })
+
+  const candidateImportMutation = useMutation({
+    mutationFn: () => api<VideoCandidateImportResult>('/api/learning-resources/candidates/import-local', { method: 'POST' }),
+    onSuccess: async (result) => {
+      setLastCandidateImport(result)
+      await queryClient.invalidateQueries({ queryKey: ['video-candidates'] })
+      await queryClient.invalidateQueries({ queryKey: ['video-candidate-source-file'] })
     },
   })
 
@@ -157,6 +245,47 @@ function App() {
       await queryClient.invalidateQueries({ queryKey: ['study-session-next'] })
       await queryClient.invalidateQueries({ queryKey: ['study-session-summary'] })
       await queryClient.invalidateQueries({ queryKey: ['study-items'] })
+    },
+  })
+
+  const updateVideoWatchStateMutation = useMutation({
+    mutationFn: ({
+      isWatched,
+      notes,
+      resourceId,
+      watchProgressSeconds,
+    }: {
+      isWatched: boolean
+      notes: string
+      resourceId: number
+      watchProgressSeconds: number
+    }) =>
+      api<LearningResourceResponse>(`/api/learning-resources/${resourceId}/watch-state`, {
+        method: 'PUT',
+        body: JSON.stringify({ isWatched, notes, watchProgressSeconds }),
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['learning-resources'] })
+    },
+  })
+
+  const acceptCandidateMutation = useMutation({
+    mutationFn: (candidateId: number) =>
+      api<AcceptVideoCandidateResponse>(`/api/learning-resources/candidates/${candidateId}/accept`, { method: 'POST' }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['video-candidates'] })
+      await queryClient.invalidateQueries({ queryKey: ['learning-resources'] })
+    },
+  })
+
+  const rejectCandidateMutation = useMutation({
+    mutationFn: (candidateId: number) =>
+      api<VideoCandidateResponse>(`/api/learning-resources/candidates/${candidateId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: 'Not a fit for the current study catalog.' }),
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['video-candidates'] })
     },
   })
 
@@ -264,6 +393,52 @@ function App() {
               }
             }}
             summary={studySessionSummaryQuery.data}
+          />
+        ) : activeView === 'videos' ? (
+          <VideoLibraryView
+            candidateImportPending={candidateImportMutation.isPending}
+            candidateLoading={videoCandidatesQuery.isLoading}
+            candidateSearch={candidateSearch}
+            candidateSourceFile={videoCandidateSourceFileQuery.data?.sourceFile ?? null}
+            candidateStatus={candidateStatus}
+            candidateUpdating={acceptCandidateMutation.isPending || rejectCandidateMutation.isPending}
+            candidates={videoCandidatesQuery.data ?? emptyCandidates}
+            channelImportPending={channelImportMutation.isPending}
+            channelLoading={channelsQuery.isLoading}
+            channelSearch={channelSearch}
+            channelSourceFile={channelSourceFileQuery.data?.sourceFile ?? null}
+            channels={channelsQuery.data ?? emptyChannels}
+            error={
+              videosQuery.error ??
+              channelsQuery.error ??
+              channelSourceFileQuery.error ??
+              videoCandidatesQuery.error ??
+              videoCandidateSourceFileQuery.error ??
+              videoImportMutation.error ??
+              channelImportMutation.error ??
+              candidateImportMutation.error ??
+              acceptCandidateMutation.error ??
+              rejectCandidateMutation.error ??
+              updateVideoWatchStateMutation.error
+            }
+            importPending={videoImportMutation.isPending}
+            lastCandidateImport={lastCandidateImport}
+            lastChannelImport={lastChannelImport}
+            lastImport={lastVideoImport}
+            loading={videosQuery.isLoading}
+            onCandidateAccept={(candidateId) => acceptCandidateMutation.mutate(candidateId)}
+            onCandidateImport={() => candidateImportMutation.mutate()}
+            onCandidateReject={(candidateId) => rejectCandidateMutation.mutate(candidateId)}
+            onCandidateSearch={setCandidateSearch}
+            onCandidateStatusChange={setCandidateStatus}
+            onChannelImport={() => channelImportMutation.mutate()}
+            onChannelSearch={setChannelSearch}
+            onImport={() => videoImportMutation.mutate()}
+            onSaveWatchState={(resourceId, isWatched, watchProgressSeconds, notes) =>
+              updateVideoWatchStateMutation.mutate({ resourceId, isWatched, watchProgressSeconds, notes })
+            }
+            saving={updateVideoWatchStateMutation.isPending}
+            videos={videosQuery.data ?? emptyVideos}
           />
         ) : (
           <CatalogView

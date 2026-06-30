@@ -7,6 +7,7 @@
 - Avoid asking the user to manually type or generate study questions. The platform should ship with rich, curated, high-quality questions and linked learning resources.
 - The app should minimize context switching. Prefer in-app reading, embedded videos, in-app questions, notes, and coding over page references that require leaving the platform.
 - For user-owned local PDFs, support local-only ingestion/display inside the app when possible. Keep original PDFs and extracted content out of GitHub.
+- For video curation, prefer the user's trusted author/channel pool over generic course aggregation. Include respected channels such as Nick Chapsas, Milan Jovanovic, Patrick God, Scott Hanselman, Dev Leader, Basarat Ali Syed, dotnet, Microsoft Visual Studio, IAmTimCorey, Microsoft Developer, NeetCode, MIT OpenCourseWare, Web Dev Simplified, Raw Coding, Code Maze, Ardalis, Jack Herrington, and similar high-signal sources.
 
 ## Frontend Structure
 

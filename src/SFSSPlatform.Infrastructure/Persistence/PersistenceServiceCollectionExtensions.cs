@@ -25,8 +25,19 @@ public static class PersistenceServiceCollectionExtensions
                 options.PagesPerChunk = pagesPerChunk;
             }
         });
+        services.Configure<TrustedYouTubeChannelImportOptions>(options =>
+        {
+            options.SourceFile = configuration["LocalYouTubeChannels:SourceFile"];
+        });
+        services.Configure<VideoCandidateImportOptions>(options =>
+        {
+            options.SourceFile = configuration["LocalVideoCandidates:SourceFile"];
+        });
         services.AddScoped<LocalPdfIngestionService>();
         services.AddScoped<StudyItemGenerator>();
+        services.AddScoped<LearningResourceSeeder>();
+        services.AddScoped<TrustedYouTubeChannelImporter>();
+        services.AddScoped<VideoCandidateImporter>();
 
         return services;
     }

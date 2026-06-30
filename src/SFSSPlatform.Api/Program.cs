@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SFSSPlatform.Api.Features.Catalog;
+using SFSSPlatform.Api.Features.LearningResources;
 using SFSSPlatform.Api.Features.Sources;
 using SFSSPlatform.Api.Features.StudyItems;
 using SFSSPlatform.Api.Features.StudySession;
@@ -43,6 +44,9 @@ app.MapCatalogEndpoints();
 app.MapSourceEndpoints();
 app.MapStudyItemEndpoints();
 app.MapStudySessionEndpoints();
+app.MapLearningResourceEndpoints();
+app.MapTrustedYouTubeChannelEndpoints();
+app.MapVideoCandidateEndpoints();
 
 await app.InitializeDatabaseAsync();
 app.Run();

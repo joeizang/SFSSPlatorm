@@ -2,6 +2,7 @@ bin/
 obj/
 .idea/
 docs/
+local-source/
 local-sources/
 /packages/
 riderModule.iml

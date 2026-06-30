@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SFSSPlatform.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using SFSSPlatform.Infrastructure.Persistence;
 namespace SFSSPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(StudyPlatformDbContext))]
-    partial class StudyPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630192511_AddTrustedYouTubeChannels")]
+    partial class AddTrustedYouTubeChannels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -523,105 +526,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("TrustedYouTubeChannels", (string)null);
                 });
 
-            modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.VideoCandidate", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset?>("AcceptedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ChannelName")
-                        .IsRequired()
-                        .HasMaxLength(180)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ChannelUrl")
-                        .IsRequired()
-                        .HasMaxLength(800)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("EmbedUrl")
-                        .IsRequired()
-                        .HasMaxLength(800)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ExternalId")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("LearningResourceId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("RejectedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("RejectionReason")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Summary")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Tags")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(800)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChannelName");
-
-                    b.HasIndex("Difficulty");
-
-                    b.HasIndex("ExternalId")
-                        .IsUnique();
-
-                    b.HasIndex("LearningResourceId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("Tags");
-
-                    b.ToTable("VideoCandidates", (string)null);
-                });
-
             modelBuilder.Entity("SFSSPlatform.Domain.Curriculum.PhaseTopic", b =>
                 {
                     b.HasOne("SFSSPlatform.Domain.Curriculum.Phase", "Phase")
@@ -753,16 +657,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.Navigation("SourceDocumentChunk");
 
                     b.Navigation("SourceMaterial");
-                });
-
-            modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.VideoCandidate", b =>
-                {
-                    b.HasOne("SFSSPlatform.Domain.StudyContent.LearningResource", "LearningResource")
-                        .WithMany()
-                        .HasForeignKey("LearningResourceId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("LearningResource");
                 });
 
             modelBuilder.Entity("SFSSPlatform.Domain.Curriculum.CurriculumModule", b =>
