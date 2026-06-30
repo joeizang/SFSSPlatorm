@@ -53,7 +53,8 @@ public static class StudySessionEndpoints
             .Where(item => item.NextReviewAt is null || item.NextReviewAt <= now)
             .OrderBy(item => item.NextReviewAt is null ? 0 : 1)
             .ThenBy(item => item.ConfidenceScore)
-            .ThenBy(item => item.Id)
+            .ThenBy(item => item.AttemptCount)
+            .ThenByDescending(item => item.Id)
             .ToList();
 
         var item = dueItems.FirstOrDefault();

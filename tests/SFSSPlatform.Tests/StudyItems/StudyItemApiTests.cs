@@ -2,8 +2,10 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SFSSPlatform.Api.Features.StudyItems;
 using SFSSPlatform.Domain.StudyContent;
 using SFSSPlatform.Infrastructure.Persistence;
@@ -34,6 +36,11 @@ public sealed class StudyItemApiTests : IDisposable
                     {
                         ["ConnectionStrings:Default"] = $"Data Source={_databasePath}"
                     });
+                });
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<DbContextOptions<StudyPlatformDbContext>>();
+                    services.AddDbContext<StudyPlatformDbContext>(options => options.UseSqlite($"Data Source={_databasePath}"));
                 });
             });
     }
