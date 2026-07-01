@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react'
-import { BookOpen, Code2, Library, Repeat2, Video } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { BookOpen, Code2, Library, PanelLeftClose, PanelLeftOpen, Repeat2, Video } from 'lucide-react'
 import type { ModuleResponse } from '../features/catalog/types'
 import type { SourceMaterialResponse } from '../features/sources/types'
 
-export type WorkspaceView = 'sources' | 'study' | 'videos' | 'catalog'
+export type WorkspaceView = 'sources' | 'study' | 'videos' | 'catalog' | 'topic'
 
 type AppSidebarProps = {
   activeView: WorkspaceView
@@ -24,47 +24,68 @@ export function AppSidebar({
   selectedModule,
   sources,
 }: AppSidebarProps) {
+  const [collapsed, setCollapsed] = useState(false)
+
   return (
-    <aside className="border-b border-zinc-800 bg-[#0f1216] lg:border-b-0 lg:border-r">
-      <div className="border-b border-zinc-800 px-5 py-5">
-        <div className="flex items-center gap-3">
+    <aside
+      className={`shrink-0 border-b border-zinc-800 bg-[#0f1216] transition-[width] duration-200 lg:border-b-0 lg:border-r ${
+        collapsed ? 'lg:w-16' : 'lg:w-[280px]'
+      }`}
+    >
+      <div className={`border-b border-zinc-800 px-3 py-4 ${collapsed ? 'lg:px-2' : 'lg:px-5 lg:py-5'}`}>
+        <div className={`flex items-center ${collapsed ? 'justify-center lg:flex-col lg:gap-2' : 'gap-3'}`}>
           <div className="flex h-9 w-9 items-center justify-center rounded-md border border-cyan-800/70 bg-cyan-950/40">
             <Code2 className="h-5 w-5 text-cyan-300" />
           </div>
-          <div>
+          <div className={collapsed ? 'lg:hidden' : ''}>
             <div className="text-sm font-semibold text-slate-100">SFSS Platform</div>
             <div className="text-xs text-slate-500">Senior full-stack study</div>
           </div>
+          <button
+            className={`focus-ring hidden h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-zinc-900 hover:text-slate-100 lg:inline-flex ${
+              collapsed ? '' : 'ml-auto'
+            }`}
+            type="button"
+            title={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+            aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+            onClick={() => setCollapsed((current) => !current)}
+          >
+            {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
-      <nav className="px-3 py-4">
+      <nav className={collapsed ? 'px-2 py-4' : 'px-3 py-4'}>
         <SidebarButton
           active={activeView === 'sources'}
+          collapsed={collapsed}
           icon={<Library className="h-4 w-4" />}
           label="Source library"
           onClick={() => onSelectView('sources')}
         />
         <SidebarButton
           active={activeView === 'study'}
+          collapsed={collapsed}
           icon={<Repeat2 className="h-4 w-4" />}
           label="Study session"
           onClick={() => onSelectView('study')}
         />
         <SidebarButton
           active={activeView === 'videos'}
+          collapsed={collapsed}
           icon={<Video className="h-4 w-4" />}
           label="Videos"
           onClick={() => onSelectView('videos')}
         />
         <SidebarButton
           active={activeView === 'catalog'}
+          collapsed={collapsed}
           icon={<BookOpen className="h-4 w-4" />}
           label="Curriculum"
           onClick={() => onSelectView('catalog')}
         />
 
-        {activeView === 'catalog' && (
+        {!collapsed && activeView === 'catalog' && (
           <>
             <div className="mt-5 px-3 text-xs font-medium uppercase tracking-wide text-slate-500">Modules</div>
             <div className="mt-2 space-y-1">
@@ -82,7 +103,7 @@ export function AppSidebar({
           </>
         )}
 
-        {activeView === 'sources' && (
+        {!collapsed && activeView === 'sources' && (
           <div className="mt-6 space-y-3 px-3 text-sm">
             <SidebarStat label="Sources" value={String(sources.length)} />
             <SidebarStat label="Readable" value={String(completedSourceCount)} />
@@ -96,25 +117,29 @@ export function AppSidebar({
 
 function SidebarButton({
   active,
+  collapsed,
   icon,
   label,
   onClick,
 }: {
   active: boolean
+  collapsed: boolean
   icon: ReactNode
   label: string
   onClick: () => void
 }) {
   return (
     <button
-      className={`focus-ring mb-1 flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm ${
+      className={`focus-ring mb-1 flex w-full items-center rounded-md px-3 py-2 text-left text-sm ${
         active ? 'bg-zinc-800 text-slate-50' : 'text-slate-400 hover:bg-zinc-900 hover:text-slate-100'
-      }`}
+      } ${collapsed ? 'justify-center lg:px-0' : 'gap-3'}`}
       type="button"
+      title={label}
+      aria-label={label}
       onClick={onClick}
     >
       {icon}
-      {label}
+      <span className={collapsed ? 'lg:hidden' : ''}>{label}</span>
     </button>
   )
 }

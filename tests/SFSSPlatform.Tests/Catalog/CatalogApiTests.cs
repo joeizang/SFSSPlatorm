@@ -3,8 +3,12 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SFSSPlatform.Api.Features.Catalog;
+using SFSSPlatform.Infrastructure.Persistence;
 using SFSSPlatform.Domain.Curriculum;
 using SFSSPlatform.Infrastructure.Curriculum;
 using TaskType = SFSSPlatform.Domain.Curriculum.TaskType;
@@ -35,6 +39,11 @@ public sealed class CatalogApiTests : IDisposable
                     {
                         ["ConnectionStrings:Default"] = $"Data Source={_databasePath}"
                     });
+                });
+                builder.ConfigureServices(services =>
+                {
+                    services.RemoveAll<DbContextOptions<StudyPlatformDbContext>>();
+                    services.AddDbContext<StudyPlatformDbContext>(options => options.UseSqlite($"Data Source={_databasePath}"));
                 });
             });
     }
@@ -90,6 +99,41 @@ public sealed class CatalogApiTests : IDisposable
         var response = await client.GetAsync("/api/catalog/topics/not-a-topic");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Topic_notes_can_be_read_and_saved_for_a_single_topic()
+    {
+        using var client = _factory.CreateClient();
+
+        var importResponse = await client.PostAsJsonAsync(
+            "/api/curriculum/import",
+            TestCurriculumSeed.Create(),
+            JsonOptions);
+        importResponse.EnsureSuccessStatusCode();
+
+        var emptyNote = await client.GetFromJsonAsync<TopicNoteResponse>(
+            "/api/catalog/topics/minimal-api-routing/notes/",
+            JsonOptions);
+        Assert.NotNull(emptyNote);
+        Assert.Equal("minimal-api-routing", emptyNote.TopicSlug);
+        Assert.Equal(string.Empty, emptyNote.Content);
+
+        var saveResponse = await client.PutAsJsonAsync(
+            "/api/catalog/topics/minimal-api-routing/notes/",
+            new UpsertTopicNoteRequest("Route groups should be stable contracts, not folders."),
+            JsonOptions);
+        saveResponse.EnsureSuccessStatusCode();
+
+        var savedNote = await saveResponse.Content.ReadFromJsonAsync<TopicNoteResponse>(JsonOptions);
+        Assert.NotNull(savedNote);
+        Assert.Equal("Route groups should be stable contracts, not folders.", savedNote.Content);
+
+        var reloadedNote = await client.GetFromJsonAsync<TopicNoteResponse>(
+            "/api/catalog/topics/minimal-api-routing/notes/",
+            JsonOptions);
+        Assert.NotNull(reloadedNote);
+        Assert.Equal(savedNote.Content, reloadedNote.Content);
     }
 
     public void Dispose()

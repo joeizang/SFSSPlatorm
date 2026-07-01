@@ -15,6 +15,8 @@ public sealed class StudyPlatformDbContext(DbContextOptions<StudyPlatformDbConte
 
     public DbSet<Topic> Topics => Set<Topic>();
 
+    public DbSet<TopicNote> TopicNotes => Set<TopicNote>();
+
     public DbSet<TopicTaskType> TopicTaskTypes => Set<TopicTaskType>();
 
     public DbSet<SourceMaterial> SourceMaterials => Set<SourceMaterial>();
@@ -23,6 +25,10 @@ public sealed class StudyPlatformDbContext(DbContextOptions<StudyPlatformDbConte
 
     public DbSet<StudyItem> StudyItems => Set<StudyItem>();
 
+    public DbSet<CodingExercise> CodingExercises => Set<CodingExercise>();
+
+    public DbSet<CodingExerciseSolution> CodingExerciseSolutions => Set<CodingExerciseSolution>();
+
     public DbSet<StudyAttempt> StudyAttempts => Set<StudyAttempt>();
 
     public DbSet<LearningResource> LearningResources => Set<LearningResource>();
@@ -30,6 +36,8 @@ public sealed class StudyPlatformDbContext(DbContextOptions<StudyPlatformDbConte
     public DbSet<TrustedYouTubeChannel> TrustedYouTubeChannels => Set<TrustedYouTubeChannel>();
 
     public DbSet<VideoCandidate> VideoCandidates => Set<VideoCandidate>();
+
+    public DbSet<TopicResourceLink> TopicResourceLinks => Set<TopicResourceLink>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

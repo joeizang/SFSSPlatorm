@@ -4,7 +4,15 @@ import { api } from './api/http'
 import { AppSidebar, type WorkspaceView } from './components/AppSidebar'
 import { CatalogView } from './features/catalog/CatalogView'
 import { previewSeed } from './features/catalog/previewSeed'
-import type { CatalogRollupsResponse, ModuleResponse, TopicProgressStatus, TopicSearchResponse } from './features/catalog/types'
+import type {
+  CatalogRollupsResponse,
+  ModuleResponse,
+  TopicDetailResponse,
+  TopicNoteResponse,
+  TopicProgressStatus,
+  TopicSearchResponse,
+  UpsertTopicNoteRequest,
+} from './features/catalog/types'
 import { SourceLibraryView } from './features/sources/SourceLibraryView'
 import type {
   LocalPdfIngestionResult,
@@ -12,16 +20,19 @@ import type {
   SourceChunkSummaryResponse,
   SourceMaterialResponse,
 } from './features/sources/types'
-import type { GeneratedStudyItemsResponse, StudyItemDraftResponse, StudyItemResponse } from './features/study-items/types'
+import type { CodingExerciseResponse, GeneratedStudyItemsResponse, StudyItemDraftResponse, StudyItemResponse } from './features/study-items/types'
 import { StudySessionView } from './features/study-session/StudySessionView'
 import type { StudyAttemptRating, StudyAttemptResponse, StudySessionNextResponse, StudySessionSummaryResponse } from './features/study-session/types'
+import { TopicWorkspaceView } from './features/topic-workspace/TopicWorkspaceView'
 import { VideoLibraryView } from './features/videos/VideoLibraryView'
 import type {
   AcceptVideoCandidateResponse,
   LearningResourceImportResult,
   LearningResourceResponse,
+  TopicResourceLinkResponse,
   TrustedYouTubeChannelImportResult,
   TrustedYouTubeChannelResponse,
+  UpsertTopicResourceLinkRequest,
   VideoCandidateImportResult,
   VideoCandidateResponse,
   VideoCandidateStatus,
@@ -36,6 +47,7 @@ const emptyStudyItems: StudyItemResponse[] = []
 const emptyVideos: LearningResourceResponse[] = []
 const emptyChannels: TrustedYouTubeChannelResponse[] = []
 const emptyCandidates: VideoCandidateResponse[] = []
+const emptyTopicResourceLinks: TopicResourceLinkResponse[] = []
 
 function App() {
   const queryClient = useQueryClient()
@@ -45,6 +57,8 @@ function App() {
   const [channelSearch, setChannelSearch] = useState('')
   const [candidateSearch, setCandidateSearch] = useState('')
   const [candidateStatus, setCandidateStatus] = useState<VideoCandidateStatus | 'all'>('candidate')
+  const [selectedResourceTopicSlug, setSelectedResourceTopicSlug] = useState('')
+  const [selectedStudyTopicSlug, setSelectedStudyTopicSlug] = useState('')
   const [selectedModule, setSelectedModule] = useState<string>('all')
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null)
   const [selectedChunkId, setSelectedChunkId] = useState<number | null>(null)
@@ -53,6 +67,7 @@ function App() {
   const [lastChannelImport, setLastChannelImport] = useState<TrustedYouTubeChannelImportResult | null>(null)
   const [lastCandidateImport, setLastCandidateImport] = useState<VideoCandidateImportResult | null>(null)
   const [generatedStudyItems, setGeneratedStudyItems] = useState<StudyItemDraftResponse[]>([])
+  const [generatedTopicStudyItems, setGeneratedTopicStudyItems] = useState<StudyItemDraftResponse[]>([])
 
   const modulesQuery = useQuery({
     queryKey: ['modules'],
@@ -68,6 +83,18 @@ function App() {
       const query = params.toString()
       return api<TopicSearchResponse[]>(`/api/catalog/topics${query ? `?${query}` : ''}`)
     },
+  })
+
+  const topicDetailQuery = useQuery({
+    queryKey: ['topic-detail', selectedStudyTopicSlug],
+    queryFn: () => api<TopicDetailResponse>(`/api/catalog/topics/${selectedStudyTopicSlug}`),
+    enabled: activeView === 'topic' && selectedStudyTopicSlug.length > 0,
+  })
+
+  const topicNoteQuery = useQuery({
+    queryKey: ['topic-note', selectedStudyTopicSlug],
+    queryFn: () => api<TopicNoteResponse>(`/api/catalog/topics/${selectedStudyTopicSlug}/notes/`),
+    enabled: activeView === 'topic' && selectedStudyTopicSlug.length > 0,
   })
 
   const rollupsQuery = useQuery({
@@ -96,6 +123,18 @@ function App() {
     queryKey: ['study-items', selectedChunkId],
     queryFn: () => api<StudyItemResponse[]>(`/api/study-items/?sourceDocumentChunkId=${selectedChunkId}`),
     enabled: selectedChunkId !== null,
+  })
+
+  const topicStudyItemsQuery = useQuery({
+    queryKey: ['topic-study-items', selectedStudyTopicSlug],
+    queryFn: () => api<StudyItemResponse[]>(`/api/study-items/?topicSlug=${selectedStudyTopicSlug}`),
+    enabled: activeView === 'topic' && selectedStudyTopicSlug.length > 0,
+  })
+
+  const topicExercisesQuery = useQuery({
+    queryKey: ['topic-exercises', selectedStudyTopicSlug],
+    queryFn: () => api<CodingExerciseResponse[]>(`/api/catalog/topics/${selectedStudyTopicSlug}/exercises/`),
+    enabled: activeView === 'topic' && selectedStudyTopicSlug.length > 0,
   })
 
   const studySessionQuery = useQuery({
@@ -149,6 +188,12 @@ function App() {
     queryKey: ['video-candidate-source-file'],
     queryFn: () => api<{ sourceFile: string }>('/api/learning-resources/candidates/source-file'),
     enabled: activeView === 'videos',
+  })
+
+  const topicResourceLinksQuery = useQuery({
+    queryKey: ['topic-resource-links'],
+    queryFn: () => api<TopicResourceLinkResponse[]>('/api/topic-resource-links/'),
+    enabled: activeView === 'videos' || activeView === 'catalog' || activeView === 'topic',
   })
 
   const importMutation = useMutation({
@@ -207,8 +252,20 @@ function App() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['topics'] })
+      await queryClient.invalidateQueries({ queryKey: ['topic-detail'] })
       await queryClient.invalidateQueries({ queryKey: ['modules'] })
       await queryClient.invalidateQueries({ queryKey: ['rollups'] })
+    },
+  })
+
+  const topicNoteMutation = useMutation({
+    mutationFn: ({ content, topicSlug }: UpsertTopicNoteRequest & { topicSlug: string }) =>
+      api<TopicNoteResponse>(`/api/catalog/topics/${topicSlug}/notes/`, {
+        method: 'PUT',
+        body: JSON.stringify({ content }),
+      }),
+    onSuccess: async (_, request) => {
+      await queryClient.invalidateQueries({ queryKey: ['topic-note', request.topicSlug] })
     },
   })
 
@@ -224,14 +281,43 @@ function App() {
   })
 
   const createStudyItemsMutation = useMutation({
-    mutationFn: ({ sourceDocumentChunkId, items }: { sourceDocumentChunkId: number; items: StudyItemDraftResponse[] }) =>
+    mutationFn: ({
+      items,
+      sourceDocumentChunkId,
+      topicSlug,
+    }: {
+      items: StudyItemDraftResponse[]
+      sourceDocumentChunkId?: number
+      topicSlug?: string
+    }) =>
       api<StudyItemResponse[]>('/api/study-items/', {
         method: 'POST',
-        body: JSON.stringify({ sourceDocumentChunkId, items }),
+        body: JSON.stringify({ sourceDocumentChunkId, topicSlug, items }),
       }),
     onSuccess: async () => {
       setGeneratedStudyItems([])
+      setGeneratedTopicStudyItems([])
       await queryClient.invalidateQueries({ queryKey: ['study-items', selectedChunkId] })
+      await queryClient.invalidateQueries({ queryKey: ['topic-study-items', selectedStudyTopicSlug] })
+    },
+  })
+
+  const generateTopicStudyItemsMutation = useMutation({
+    mutationFn: (topicSlug: string) =>
+      api<GeneratedStudyItemsResponse>('/api/study-items/generate-for-topic', {
+        method: 'POST',
+        body: JSON.stringify({ topicSlug }),
+      }),
+    onSuccess: (result) => {
+      setGeneratedTopicStudyItems(result.items)
+    },
+  })
+
+  const generateTopicExerciseMutation = useMutation({
+    mutationFn: (topicSlug: string) =>
+      api<CodingExerciseResponse>(`/api/catalog/topics/${topicSlug}/exercises/generate`, { method: 'POST' }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['topic-exercises', selectedStudyTopicSlug] })
     },
   })
 
@@ -289,6 +375,37 @@ function App() {
     },
   })
 
+  const topicResourceLinkMutation = useMutation({
+    mutationFn: (request: UpsertTopicResourceLinkRequest) =>
+      api<TopicResourceLinkResponse>('/api/topic-resource-links/', {
+        method: 'POST',
+        body: JSON.stringify(request),
+      }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['topic-resource-links'] })
+    },
+  })
+
+  const linkResourceToSelectedTopic = ({
+    learningResourceId,
+    notes,
+    videoCandidateId,
+  }: {
+    learningResourceId: number | null
+    notes: string
+    videoCandidateId: number | null
+  }) => {
+    if (!selectedResourceTopicSlug) return
+
+    topicResourceLinkMutation.mutate({
+      topicSlug: selectedResourceTopicSlug,
+      learningResourceId,
+      videoCandidateId,
+      priority: 4,
+      notes,
+    })
+  }
+
   const topics = topicsQuery.data ?? emptyTopics
   const modules = modulesQuery.data ?? emptyModules
   const sources = sourcesQuery.data ?? emptySources
@@ -325,6 +442,25 @@ function App() {
     setSelectedChunkId(sourceChunks[0].id)
   }, [selectedChunkId, sourceChunks])
 
+  useEffect(() => {
+    if (selectedResourceTopicSlug || topics.length === 0) return
+    setSelectedResourceTopicSlug(topics[0].slug)
+  }, [selectedResourceTopicSlug, topics])
+
+  useEffect(() => {
+    if (selectedStudyTopicSlug || topics.length === 0) return
+    setSelectedStudyTopicSlug(topics[0].slug)
+  }, [selectedStudyTopicSlug, topics])
+
+  useEffect(() => {
+    setGeneratedTopicStudyItems([])
+  }, [selectedStudyTopicSlug])
+
+  const openTopicWorkspace = (slug: string) => {
+    setSelectedStudyTopicSlug(slug)
+    setActiveView('topic')
+  }
+
   const selectedModuleTitle = useMemo(() => {
     if (selectedModule === 'all') return 'All modules'
     return modules.find((module) => module.slug === selectedModule)?.title ?? 'Module'
@@ -332,7 +468,7 @@ function App() {
 
   return (
     <main className="min-h-screen bg-[#0b0d10] text-slate-200">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="min-h-screen lg:flex">
         <AppSidebar
           activeView={activeView}
           completedSourceCount={completedSources.length}
@@ -343,6 +479,7 @@ function App() {
           sources={sources}
         />
 
+        <div className="min-w-0 flex-1">
         {activeView === 'sources' ? (
           <SourceLibraryView
             chunk={chunkQuery.data ?? null}
@@ -419,6 +556,7 @@ function App() {
               candidateImportMutation.error ??
               acceptCandidateMutation.error ??
               rejectCandidateMutation.error ??
+              topicResourceLinkMutation.error ??
               updateVideoWatchStateMutation.error
             }
             importPending={videoImportMutation.isPending}
@@ -428,17 +566,86 @@ function App() {
             loading={videosQuery.isLoading}
             onCandidateAccept={(candidateId) => acceptCandidateMutation.mutate(candidateId)}
             onCandidateImport={() => candidateImportMutation.mutate()}
+            onCandidateLinkToTopic={(candidateId) =>
+              linkResourceToSelectedTopic({
+                learningResourceId: null,
+                videoCandidateId: candidateId,
+                notes: 'Candidate mapped from the video curation queue.',
+              })
+            }
             onCandidateReject={(candidateId) => rejectCandidateMutation.mutate(candidateId)}
             onCandidateSearch={setCandidateSearch}
             onCandidateStatusChange={setCandidateStatus}
             onChannelImport={() => channelImportMutation.mutate()}
             onChannelSearch={setChannelSearch}
             onImport={() => videoImportMutation.mutate()}
+            onSelectedTopicChange={setSelectedResourceTopicSlug}
+            onSelectedVideoLinkToTopic={(resourceId) =>
+              linkResourceToSelectedTopic({
+                learningResourceId: resourceId,
+                videoCandidateId: null,
+                notes: 'Video mapped from the embedded video library.',
+              })
+            }
             onSaveWatchState={(resourceId, isWatched, watchProgressSeconds, notes) =>
               updateVideoWatchStateMutation.mutate({ resourceId, isWatched, watchProgressSeconds, notes })
             }
+            selectedTopicSlug={selectedResourceTopicSlug}
             saving={updateVideoWatchStateMutation.isPending}
+            topicLinking={topicResourceLinkMutation.isPending}
+            topics={topics}
             videos={videosQuery.data ?? emptyVideos}
+          />
+        ) : activeView === 'topic' ? (
+          <TopicWorkspaceView
+            error={
+              topicDetailQuery.error ??
+              topicNoteQuery.error ??
+              topicStudyItemsQuery.error ??
+              topicExercisesQuery.error ??
+              topicNoteMutation.error ??
+              generateTopicStudyItemsMutation.error ??
+              createStudyItemsMutation.error ??
+              generateTopicExerciseMutation.error
+            }
+            exerciseGeneratePending={generateTopicExerciseMutation.isPending}
+            exercises={topicExercisesQuery.data ?? []}
+            exercisesLoading={topicExercisesQuery.isLoading}
+            generatedStudyItems={generatedTopicStudyItems}
+            generatingStudyItems={generateTopicStudyItemsMutation.isPending}
+            links={topicResourceLinksQuery.data ?? emptyTopicResourceLinks}
+            loading={topicDetailQuery.isLoading || topicNoteQuery.isLoading}
+            note={topicNoteQuery.data ?? null}
+            noteSaving={topicNoteMutation.isPending}
+            onGenerateExercise={() => {
+              if (selectedStudyTopicSlug) {
+                generateTopicExerciseMutation.mutate(selectedStudyTopicSlug)
+              }
+            }}
+            onGenerateStudyItems={() => {
+              if (selectedStudyTopicSlug) {
+                generateTopicStudyItemsMutation.mutate(selectedStudyTopicSlug)
+              }
+            }}
+            onProgressChange={(slug, status) => progressMutation.mutate({ slug, status })}
+            onSaveNote={(content) => {
+              if (selectedStudyTopicSlug) {
+                topicNoteMutation.mutate({ topicSlug: selectedStudyTopicSlug, content })
+              }
+            }}
+            onSaveStudyItems={(items) => {
+              if (selectedStudyTopicSlug) {
+                createStudyItemsMutation.mutate({ topicSlug: selectedStudyTopicSlug, items })
+              }
+            }}
+            onSelectTopic={setSelectedStudyTopicSlug}
+            progressPending={progressMutation.isPending}
+            savingStudyItems={createStudyItemsMutation.isPending}
+            selectedTopicSlug={selectedStudyTopicSlug}
+            studyItems={topicStudyItemsQuery.data ?? emptyStudyItems}
+            studyItemsLoading={topicStudyItemsQuery.isLoading}
+            topic={topicDetailQuery.data ?? null}
+            topics={topics}
           />
         ) : (
           <CatalogView
@@ -448,6 +655,7 @@ function App() {
             importPending={importMutation.isPending}
             modules={modules}
             onImport={() => importMutation.mutate()}
+            onOpenTopic={openTopicWorkspace}
             onProgressChange={(slug, status) => progressMutation.mutate({ slug, status })}
             onSearch={setCatalogSearch}
             progressPending={progressMutation.isPending}
@@ -457,8 +665,10 @@ function App() {
             topics={topics}
             topicsError={topicsQuery.isError}
             topicsLoading={topicsQuery.isLoading}
+            resourceLinks={topicResourceLinksQuery.data ?? emptyTopicResourceLinks}
           />
         )}
+        </div>
       </div>
     </main>
   )

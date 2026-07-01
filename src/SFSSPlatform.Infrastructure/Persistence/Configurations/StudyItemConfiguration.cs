@@ -19,6 +19,7 @@ public sealed class StudyItemConfiguration : IEntityTypeConfiguration<StudyItem>
         builder.Property(item => item.SourceExcerpt).IsRequired();
 
         builder.HasIndex(item => new { item.SourceDocumentChunkId, item.Kind });
+        builder.HasIndex(item => new { item.TopicId, item.Kind });
         builder.HasIndex(item => item.Status);
         builder.HasIndex(item => new { item.Status, item.NextReviewAt, item.Id });
 
@@ -30,6 +31,11 @@ public sealed class StudyItemConfiguration : IEntityTypeConfiguration<StudyItem>
         builder.HasOne(item => item.SourceDocumentChunk)
             .WithMany()
             .HasForeignKey(item => item.SourceDocumentChunkId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(item => item.Topic)
+            .WithMany()
+            .HasForeignKey(item => item.TopicId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }

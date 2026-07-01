@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SFSSPlatform.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using SFSSPlatform.Infrastructure.Persistence;
 namespace SFSSPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(StudyPlatformDbContext))]
-    partial class StudyPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701003926_AddCodingExerciseSolutions")]
+    partial class AddCodingExerciseSolutions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -206,10 +209,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("CheckDefinitionJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("TEXT");

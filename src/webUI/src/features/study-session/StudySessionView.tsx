@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, Eye, RotateCcw, Send, Zap } from 'lucide-react'
 import { EmptyState, Metric } from '../../components/shared'
 import { studyItemKindLabel } from '../study-items/studyItemLabels'
+import { StudyAnswerEditor } from './StudyAnswerEditor'
 import type { StudyAttemptRating, StudySessionItemResponse, StudySessionSummaryResponse } from './types'
 
 type StudySessionViewProps = {
@@ -33,6 +34,7 @@ export function StudySessionView({
   const [answer, setAnswer] = useState('')
   const [revealed, setRevealed] = useState(false)
   const [rating, setRating] = useState<StudyAttemptRating>('good')
+  const codeMode = item?.kind === 'codeReading' || item?.kind === 'codingExercise'
 
   useEffect(() => {
     setAnswer('')
@@ -49,8 +51,10 @@ export function StudySessionView({
         </div>
       </header>
 
-      <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0 px-5 py-5 md:px-8">
+      <div className="min-w-0 px-5 py-5 md:px-8">
+        <SessionSummaryBar loading={loading} onSkip={onSkip} summary={summary} />
+
+        <div className="mt-5 min-w-0">
           {loading ? (
             <EmptyState title="Loading session" detail="Finding the next due study item." />
           ) : error ? (
@@ -58,7 +62,7 @@ export function StudySessionView({
           ) : !item ? (
             <EmptyState title="No due items" detail="Generate and save study items from source chunks, or come back when reviews are due." />
           ) : (
-            <article className="max-w-4xl">
+            <article className={codeMode ? 'max-w-none' : 'max-w-4xl'}>
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <span className="rounded border border-cyan-800 bg-cyan-950/30 px-2 py-1 text-xs font-medium text-cyan-100">
                   {studyItemKindLabel(item.kind)}
@@ -74,15 +78,7 @@ export function StudySessionView({
               <div className="rounded-md border border-zinc-800 bg-[#0f1216] p-5">
                 <div className="text-xs text-slate-500">{item.sourceTitle} · pages {item.startPage}-{item.endPage}</div>
                 <h2 className="mt-3 text-xl font-semibold leading-8 text-slate-50">{item.prompt}</h2>
-                <label className="mt-5 block">
-                  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">Your answer</span>
-                  <textarea
-                    className="focus-ring mt-2 min-h-36 w-full resize-y rounded-md border border-zinc-700 bg-[#0b0d10] px-3 py-3 text-sm leading-6 text-slate-100 placeholder:text-slate-600"
-                    placeholder="Answer from memory before revealing the expected answer."
-                    value={answer}
-                    onChange={(event) => setAnswer(event.target.value)}
-                  />
-                </label>
+                <StudyAnswerEditor answer={answer} item={item} onAnswerChange={setAnswer} />
 
                 {!revealed ? (
                   <button
@@ -107,25 +103,37 @@ export function StudySessionView({
             </article>
           )}
         </div>
-
-        <aside className="border-t border-zinc-800 bg-[#0f1216] px-5 py-5 xl:border-l xl:border-t-0">
-          <div className="grid grid-cols-2 gap-3 xl:grid-cols-1">
-            <Metric icon={<Zap className="h-4 w-4" />} label="Due" value={String(summary?.dueItems ?? 0)} />
-            <Metric icon={<CheckCircle2 className="h-4 w-4" />} label="Answered" value={String(summary?.answeredToday ?? 0)} />
-            <Metric icon={<RotateCcw className="h-4 w-4" />} label="Weak" value={String(summary?.weakItems ?? 0)} />
-            <Metric icon={<Send className="h-4 w-4" />} label="Active" value={String(summary?.activeItems ?? 0)} />
-          </div>
-          <button
-            className="focus-ring mt-5 h-9 w-full rounded-md border border-zinc-700 text-sm text-slate-300 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"
-            type="button"
-            disabled={loading}
-            onClick={onSkip}
-          >
-            Load next due item
-          </button>
-        </aside>
       </div>
     </section>
+  )
+}
+
+function SessionSummaryBar({
+  loading,
+  onSkip,
+  summary,
+}: {
+  loading: boolean
+  onSkip: () => void
+  summary: StudySessionSummaryResponse | undefined
+}) {
+  return (
+    <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_180px]">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Metric icon={<Zap className="h-4 w-4" />} label="Due" value={String(summary?.dueItems ?? 0)} />
+        <Metric icon={<CheckCircle2 className="h-4 w-4" />} label="Answered" value={String(summary?.answeredToday ?? 0)} />
+        <Metric icon={<RotateCcw className="h-4 w-4" />} label="Weak" value={String(summary?.weakItems ?? 0)} />
+        <Metric icon={<Send className="h-4 w-4" />} label="Active" value={String(summary?.activeItems ?? 0)} />
+      </div>
+      <button
+        className="focus-ring h-full min-h-16 rounded-md border border-zinc-700 text-sm text-slate-300 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"
+        type="button"
+        disabled={loading}
+        onClick={onSkip}
+      >
+        Load next due item
+      </button>
+    </div>
   )
 }
 

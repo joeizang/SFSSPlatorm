@@ -92,3 +92,31 @@ export type AcceptVideoCandidateResponse = {
   candidate: VideoCandidateResponse
   resource: LearningResourceResponse
 }
+
+export type TopicResourceLinkResponse = {
+  id: number
+  topicSlug: string
+  topicTitle: string
+  moduleSlug: string
+  moduleTitle: string
+  learningResourceId: number | null
+  videoCandidateId: number | null
+  resourceKind: 'learningResource' | 'videoCandidate'
+  title: string
+  creator: string
+  url: string
+  embedUrl: string
+  tags: string[]
+  priority: number
+  notes: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type UpsertTopicResourceLinkRequest = {
+  topicSlug: string
+  learningResourceId: number | null
+  videoCandidateId: number | null
+  priority: number
+  notes: string
+}

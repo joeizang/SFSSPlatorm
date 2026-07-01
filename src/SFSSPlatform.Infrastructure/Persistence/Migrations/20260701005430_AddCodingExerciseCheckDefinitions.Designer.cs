@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SFSSPlatform.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using SFSSPlatform.Infrastructure.Persistence;
 namespace SFSSPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(StudyPlatformDbContext))]
-    partial class StudyPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701005430_AddCodingExerciseCheckDefinitions")]
+    partial class AddCodingExerciseCheckDefinitions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");

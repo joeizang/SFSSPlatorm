@@ -12,3 +12,7 @@
 ## Frontend Structure
 
 - Do not let `App.tsx` become a god file. Keep React code split by feature folders and shared components; `App.tsx` should compose workflows and own only top-level app state.
+- Reuse the app's shared Monaco editor surface for all code-answer and coding-exercise workflows. Do not create one-off lightweight editor implementations for study-session code tasks.
+- Any in-app preview that renders learner-authored or generated UI/code should run in an explicit sandboxed iframe boundary.
+- Do not place code previews in narrow side panels. Frontend/design previews must receive enough workspace to inspect layout, ideally by reclaiming secondary rails or using a resizable/focus layout.
+- Label static target visuals as reference designs, not live previews. Only call a pane a live preview when it actually renders from the learner's current editor code.

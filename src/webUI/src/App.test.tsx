@@ -28,6 +28,20 @@ const topics = [
   },
 ]
 
+const topicDetail = {
+  ...topics[0],
+  startedAt: null,
+  completedAt: null,
+  updatedAt: '2026-06-30T12:00:00Z',
+}
+
+const topicNote = {
+  topicSlug: 'minimal-api-routing',
+  content: 'Route groups should make endpoint ownership obvious.',
+  createdAt: '2026-06-30T12:00:00Z',
+  updatedAt: '2026-06-30T12:00:00Z',
+}
+
 const rollups = {
   modules: [
     {
@@ -88,6 +102,8 @@ public sealed class MiddlewareExample
 const generatedStudyItems = {
   sourceDocumentChunkId: 11,
   sourceMaterialId: 7,
+  topicSlug: null,
+  topicTitle: null,
   sourceTitle: 'ASP.NET Core in Action',
   startPage: 1,
   endPage: 4,
@@ -102,19 +118,132 @@ const generatedStudyItems = {
   ],
 }
 
+const generatedTopicStudyItems = {
+  sourceDocumentChunkId: null,
+  sourceMaterialId: null,
+  topicSlug: 'minimal-api-routing',
+  topicTitle: 'Minimal API route groups',
+  sourceTitle: 'Minimal API route groups',
+  startPage: 0,
+  endPage: 0,
+  items: [
+    {
+      kind: 'concept',
+      prompt: 'Explain Minimal API route groups as if you were reviewing a production codebase.',
+      expectedAnswer: 'A strong answer should define route groups, ownership boundaries, and stable endpoint contracts.',
+      explanation: 'This checks whether the learner can connect routing to production API design.',
+      sourceExcerpt: 'Topic: Minimal API route groups. Summary: Design stable route groups with typed results and cancellation-aware handlers.',
+    },
+    {
+      kind: 'codingExercise',
+      prompt: 'Implement a focused example that demonstrates Minimal API route groups.',
+      expectedAnswer: 'Build a small runnable API slice with success and failure paths.',
+      explanation: 'This prepares the topic for the Monaco exercise surface.',
+      sourceExcerpt: 'Topic: Minimal API route groups. Package requirements should be explicit.',
+    },
+  ],
+}
+
+const topicStudyItems = [
+  {
+    id: 601,
+    sourceMaterialId: null,
+    sourceDocumentChunkId: null,
+    topicSlug: 'minimal-api-routing',
+    topicTitle: 'Minimal API route groups',
+    startPage: 0,
+    endPage: 0,
+    status: 'active',
+    attemptCount: 0,
+    confidenceScore: 0,
+    lastAttemptAt: null,
+    nextReviewAt: null,
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+    ...generatedTopicStudyItems.items[0],
+  },
+]
+
+const codingExercises = [
+  {
+    id: 801,
+    topicSlug: 'minimal-api-routing',
+    title: 'Minimal API route groups implementation drill',
+    prompt: 'Build a focused .NET example for Minimal API route groups.',
+    difficulty: 'intermediate',
+    language: 'csharp',
+    starterCode: 'public static class Exercise { public static Task<string> RunAsync(string input) => Task.FromResult(input); }',
+    packageRequirements: 'NuGet: Microsoft.NET.Test.Sdk, xunit. NPM: none for this C# exercise.',
+    successCriteria: 'The solution should compile and include one success-path and one failure-path test.',
+    hints: 'Start with the public contract and keep framework plumbing at the boundary.',
+    checkDefinitionJson: '{}',
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+]
+
+const codingExerciseSolution = {
+  exerciseId: 801,
+  topicSlug: 'minimal-api-routing',
+  code: 'public static class Exercise { public static Task<string> RunAsync(string input) => Task.FromResult(input.Trim()); }',
+  createdAt: '2026-06-30T12:00:00Z',
+  updatedAt: '2026-06-30T12:00:00Z',
+  lastCheckedAt: null,
+}
+
+const exerciseCheck = {
+  succeeded: true,
+  diagnostics: [],
+  packageRequirements: [
+    { manager: 'nuget', name: 'Microsoft.NET.Test.Sdk', status: 'declared' },
+    { manager: 'nuget', name: 'xunit', status: 'declared' },
+    { manager: 'npm', name: 'none', status: 'notRequired' },
+  ],
+  grading: {
+    status: 'passed',
+    passed: 6,
+    requiredFailed: 0,
+    checks: [
+      {
+        id: 'compile',
+        title: 'Compiles as a C# library',
+        description: 'The submitted code must compile with the configured platform references.',
+        status: 'pass',
+        guidance: 'Good.',
+      },
+      {
+        id: 'behavior.cancellation',
+        title: 'Observes cancellation',
+        description: 'Accept and observe the CancellationToken inside RunAsync.',
+        status: 'pass',
+        guidance: 'Good.',
+      },
+    ],
+    sampleCases: [
+      {
+        name: 'trims input',
+        input: '  route groups  ',
+        expected: 'ROUTE GROUPS',
+        expectedException: null,
+      },
+    ],
+  },
+  checkedAt: '2026-06-30T12:30:00Z',
+}
+
 const studySessionNext = {
   dueCount: 1,
   item: {
     id: 99,
-    kind: 'shortAnswer',
-    prompt: 'What does ASP.NET Core middleware do?',
-    expectedAnswer: 'It composes a request pipeline that handles HTTP requests and responses.',
-    explanation: 'Middleware is ordered, and each component can inspect or modify the request and response.',
-    sourceExcerpt: 'ASP.NET Core middleware forms a request pipeline for handling HTTP requests.',
+    kind: 'codingExercise',
+    prompt: 'Build a React + TypeScript product interface for a developer learning workspace.',
+    expectedAnswer: 'A strong answer should include a typed component boundary, restrained dark layout, accessible controls, and clear workspace hierarchy.',
+    explanation: 'Product-interface exercises should be answered in code and checked against a visual preview surface.',
+    sourceExcerpt: 'React + TypeScript product interfaces should protect the primary learning workflow and avoid decorative dashboard clutter.',
     startPage: 1,
     endPage: 4,
-    sourceTitle: 'ASP.NET Core in Action',
-    sourceChunkHeading: 'Middleware and request pipeline',
+    sourceTitle: 'React + TypeScript Learning UI',
+    sourceChunkHeading: 'Tailwind product interface',
     attemptCount: 0,
     confidenceScore: 0,
     lastAttemptAt: null,
@@ -212,6 +341,28 @@ const videoCandidates = [
   },
 ]
 
+const topicResourceLinks = [
+  {
+    id: 701,
+    topicSlug: 'minimal-api-routing',
+    topicTitle: 'Minimal API route groups',
+    moduleSlug: 'aspnet-core',
+    moduleTitle: 'ASP.NET Core API Engineering',
+    learningResourceId: 201,
+    videoCandidateId: null,
+    resourceKind: 'learningResource',
+    title: '.NET 10 + C# 14 - Full Course 2026 [E-commerce MVC]',
+    creator: '.NET',
+    url: 'https://www.youtube.com/watch?v=YbRe4iIVYJk',
+    embedUrl: 'https://www.youtube-nocookie.com/embed/YbRe4iIVYJk',
+    tags: ['aspnet-core', 'backend', 'csharp', 'dotnet', 'official'],
+    priority: 4,
+    notes: 'Video mapped from the embedded video library.',
+    createdAt: '2026-06-30T12:00:00Z',
+    updatedAt: '2026-06-30T12:00:00Z',
+  },
+]
+
 describe('App', () => {
   beforeEach(() => {
     vi.stubGlobal(
@@ -221,6 +372,49 @@ describe('App', () => {
 
         if (url.endsWith('/api/catalog/modules')) {
           return jsonResponse(modules)
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing/notes/') && init?.method === 'PUT') {
+          return jsonResponse({
+            ...topicNote,
+            content: JSON.parse(String(init.body)).content,
+            updatedAt: '2026-06-30T13:00:00Z',
+          })
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing/notes/')) {
+          return jsonResponse(topicNote)
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing')) {
+          return jsonResponse(topicDetail)
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing/exercises/generate')) {
+          return jsonResponse(codingExercises[0])
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing/exercises/801/solution') && init?.method === 'PUT') {
+          return jsonResponse({
+            ...codingExerciseSolution,
+            code: JSON.parse(String(init.body)).code,
+            updatedAt: '2026-06-30T13:00:00Z',
+          })
+        }
+
+        if (
+          url.endsWith('/api/catalog/topics/minimal-api-routing/exercises/801/check') ||
+          url.endsWith('/api/catalog/topics/minimal-api-routing/exercises/801/diagnostics')
+        ) {
+          return jsonResponse(exerciseCheck)
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing/exercises/801/solution')) {
+          return jsonResponse(codingExerciseSolution)
+        }
+
+        if (url.endsWith('/api/catalog/topics/minimal-api-routing/exercises/')) {
+          return jsonResponse(codingExercises)
         }
 
         if (url.includes('/api/catalog/topics') && init?.method !== 'PUT') {
@@ -269,12 +463,22 @@ describe('App', () => {
           return jsonResponse(generatedStudyItems)
         }
 
+        if (url.endsWith('/api/study-items/generate-for-topic')) {
+          return jsonResponse(generatedTopicStudyItems)
+        }
+
+        if (url.endsWith('/api/study-items/?topicSlug=minimal-api-routing')) {
+          return jsonResponse(topicStudyItems)
+        }
+
         if (url.endsWith('/api/study-items/')) {
           return jsonResponse([
             {
               id: 99,
               sourceMaterialId: 7,
               sourceDocumentChunkId: 11,
+              topicSlug: null,
+              topicTitle: null,
               startPage: 1,
               endPage: 4,
               status: 'active',
@@ -385,6 +589,30 @@ describe('App', () => {
           })
         }
 
+        if (url.endsWith('/api/topic-resource-links/') && init?.method === 'POST') {
+          return jsonResponse({
+            ...topicResourceLinks[0],
+            id: 702,
+            learningResourceId: null,
+            videoCandidateId: 401,
+            resourceKind: 'videoCandidate',
+            title: 'Deep .NET: Writing async/await from scratch',
+            creator: 'dotnet',
+            url: 'https://www.youtube.com/watch?v=R-z2Hv-7nxk',
+            embedUrl: 'https://www.youtube-nocookie.com/embed/R-z2Hv-7nxk',
+            tags: ['async', 'csharp', 'dotnet', 'runtime'],
+            notes: 'Candidate mapped from the video curation queue.',
+          })
+        }
+
+        if (url.endsWith('/api/topic-resource-links/')) {
+          return jsonResponse(topicResourceLinks)
+        }
+
+        if (url.endsWith('/api/topic-resource-links/unlinked')) {
+          return jsonResponse({ learningResources: [], videoCandidates: [] })
+        }
+
         if (url.includes('/api/learning-resources/candidates/') && init?.method !== 'POST') {
           return jsonResponse(videoCandidates)
         }
@@ -454,16 +682,106 @@ describe('App', () => {
     expect(screen.getAllByText('ASP.NET Core API Engineering').length).toBeGreaterThan(0)
   })
 
-  it('can run a study session attempt', async () => {
+  it('opens the topic workspace and saves topic notes', async () => {
+    const user = userEvent.setup()
+    const { container } = renderApp()
+
+    await user.click(await screen.findByRole('button', { name: /curriculum/i }))
+    await user.click(await screen.findByRole('button', { name: 'Minimal API route groups' }))
+
+    expect(await screen.findByText('Linked videos')).toBeInTheDocument()
+    expect(await screen.findAllByText('.NET 10 + C# 14 - Full Course 2026 [E-commerce MVC]')).toHaveLength(2)
+    expect(container.querySelector('iframe')?.getAttribute('src')).toBe('https://www.youtube-nocookie.com/embed/YbRe4iIVYJk')
+    expect(await screen.findByText('Question bank')).toBeInTheDocument()
+    expect(await screen.findByText('Coding exercises')).toBeInTheDocument()
+    expect(await screen.findByText('Minimal API route groups implementation drill')).toBeInTheDocument()
+    expect(await screen.findByText('Editor')).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /reset/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /copy/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /save code/i })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /^check$/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^check$/i }))
+    expect(await screen.findByText(/roslyn compile diagnostics are clean/i)).toBeInTheDocument()
+    expect(await screen.findByText('Observes cancellation')).toBeInTheDocument()
+    expect(await screen.findByText('trims input')).toBeInTheDocument()
+    expect(await screen.findByText('Microsoft.NET.Test.Sdk')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/catalog/topics/minimal-api-routing/exercises/801/check',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    await user.click(screen.getByRole('button', { name: /save code/i }))
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/catalog/topics/minimal-api-routing/exercises/801/solution',
+        expect.objectContaining({ method: 'PUT' }),
+      )
+    })
+
+    await user.click(screen.getAllByRole('button', { name: /^generate$/i })[0])
+    expect(await screen.findAllByText(/reviewing a production codebase/i)).toHaveLength(2)
+    await user.click(screen.getByRole('button', { name: /^save 2$/i }))
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/study-items/',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    await user.click(screen.getByRole('button', { name: /^create$/i }))
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/catalog/topics/minimal-api-routing/exercises/generate',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
+    const notes = await screen.findByPlaceholderText(/write the explanation in your own words/i)
+    await user.clear(notes)
+    await user.type(notes, 'Route groups define the public shape of a feature area.')
+    await user.click(screen.getByRole('button', { name: /^save$/i }))
+
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/catalog/topics/minimal-api-routing/notes/',
+        expect.objectContaining({ method: 'PUT' }),
+      )
+    })
+  })
+
+  it('keeps topic workspace and module filters scoped to curriculum', async () => {
     const user = userEvent.setup()
     renderApp()
 
-    await user.click(await screen.findByRole('button', { name: /study session/i }))
-    expect(await screen.findByText('What does ASP.NET Core middleware do?')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /topic workspace/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('Modules')).not.toBeInTheDocument()
 
-    await user.type(screen.getByPlaceholderText(/answer from memory/i), 'It builds the HTTP request pipeline.')
+    await user.click(await screen.findByRole('button', { name: /curriculum/i }))
+    expect(await screen.findAllByText('Modules')).toHaveLength(2)
+    await user.click(await screen.findByRole('button', { name: 'Minimal API route groups' }))
+
+    expect(await screen.findByText('Linked videos')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /topic workspace/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('Modules')).not.toBeInTheDocument()
+  })
+
+  it('can run a study session attempt', async () => {
+    const user = userEvent.setup()
+    const { container } = renderApp()
+
+    await user.click(await screen.findByRole('button', { name: /study session/i }))
+    expect(await screen.findByText('Build a React + TypeScript product interface for a developer learning workspace.')).toBeInTheDocument()
+    expect(await screen.findByText('Reference design')).toBeInTheDocument()
+    expect(container.querySelector('iframe[title="Reference design preview"]')?.getAttribute('sandbox')).toBe('')
+
+    const editor = await screen.findByLabelText('Code answer text')
+    await user.click(editor)
+    await user.type(editor, 'export function Workspace() {{ return <main /> }}')
     await user.click(screen.getByRole('button', { name: /reveal answer/i }))
-    expect(await screen.findByText(/it composes a request pipeline/i)).toBeInTheDocument()
+    expect(await screen.findByText(/typed component boundary/i)).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /record attempt/i }))
 
@@ -493,6 +811,14 @@ describe('App', () => {
     })
 
     expect(await screen.findByText('Deep .NET: Writing async/await from scratch')).toBeInTheDocument()
+    await user.click(screen.getAllByRole('button', { name: /link topic/i })[0])
+    await waitFor(() => {
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'http://localhost:5105/api/topic-resource-links/',
+        expect.objectContaining({ method: 'POST' }),
+      )
+    })
+
     await user.click(screen.getByRole('button', { name: /import candidates/i }))
     await waitFor(() => {
       expect(globalThis.fetch).toHaveBeenCalledWith(

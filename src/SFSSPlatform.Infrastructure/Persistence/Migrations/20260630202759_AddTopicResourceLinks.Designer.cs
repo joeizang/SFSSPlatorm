@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SFSSPlatform.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using SFSSPlatform.Infrastructure.Persistence;
 namespace SFSSPlatform.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(StudyPlatformDbContext))]
-    partial class StudyPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260630202759_AddTopicResourceLinks")]
+    partial class AddTopicResourceLinks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
@@ -159,34 +162,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.ToTable("Topics", (string)null);
                 });
 
-            modelBuilder.Entity("SFSSPlatform.Domain.Curriculum.TopicNote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(40000)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TopicId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TopicId")
-                        .IsUnique();
-
-                    b.ToTable("TopicNotes", (string)null);
-                });
-
             modelBuilder.Entity("SFSSPlatform.Domain.Curriculum.TopicTaskType", b =>
                 {
                     b.Property<int>("TopicId")
@@ -199,98 +174,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.HasKey("TopicId", "TaskType");
 
                     b.ToTable("TopicTaskTypes", (string)null);
-                });
-
-            modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.CodingExercise", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CheckDefinitionJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Hints")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PackageRequirements")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Prompt")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("StarterCode")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("SuccessCriteria")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(280)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("TopicId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TopicId", "Title")
-                        .IsUnique();
-
-                    b.ToTable("CodingExercises", (string)null);
-                });
-
-            modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.CodingExerciseSolution", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CodingExerciseId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("LastCheckedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CodingExerciseId")
-                        .IsUnique();
-
-                    b.ToTable("CodingExerciseSolutions", (string)null);
                 });
 
             modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.LearningResource", b =>
@@ -560,14 +443,14 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("SourceDocumentChunkId")
+                    b.Property<int>("SourceDocumentChunkId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("SourceExcerpt")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("SourceMaterialId")
+                    b.Property<int>("SourceMaterialId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("StartPage")
@@ -577,9 +460,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("TEXT");
-
-                    b.Property<int?>("TopicId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("TEXT");
@@ -591,8 +471,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status");
 
                     b.HasIndex("SourceDocumentChunkId", "Kind");
-
-                    b.HasIndex("TopicId", "Kind");
 
                     b.HasIndex("Status", "NextReviewAt", "Id");
 
@@ -857,17 +735,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SFSSPlatform.Domain.Curriculum.TopicNote", b =>
-                {
-                    b.HasOne("SFSSPlatform.Domain.Curriculum.Topic", "Topic")
-                        .WithOne()
-                        .HasForeignKey("SFSSPlatform.Domain.Curriculum.TopicNote", "TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Topic");
-                });
-
             modelBuilder.Entity("SFSSPlatform.Domain.Curriculum.TopicTaskType", b =>
                 {
                     b.HasOne("SFSSPlatform.Domain.Curriculum.Topic", "Topic")
@@ -877,28 +744,6 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Topic");
-                });
-
-            modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.CodingExercise", b =>
-                {
-                    b.HasOne("SFSSPlatform.Domain.Curriculum.Topic", "Topic")
-                        .WithMany()
-                        .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Topic");
-                });
-
-            modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.CodingExerciseSolution", b =>
-                {
-                    b.HasOne("SFSSPlatform.Domain.StudyContent.CodingExercise", "CodingExercise")
-                        .WithMany()
-                        .HasForeignKey("CodingExerciseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CodingExercise");
                 });
 
             modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.LearningResource", b =>
@@ -945,23 +790,18 @@ namespace SFSSPlatform.Infrastructure.Persistence.Migrations
                     b.HasOne("SFSSPlatform.Domain.StudyContent.SourceDocumentChunk", "SourceDocumentChunk")
                         .WithMany()
                         .HasForeignKey("SourceDocumentChunkId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SFSSPlatform.Domain.StudyContent.SourceMaterial", "SourceMaterial")
                         .WithMany()
                         .HasForeignKey("SourceMaterialId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SFSSPlatform.Domain.Curriculum.Topic", "Topic")
-                        .WithMany()
-                        .HasForeignKey("TopicId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("SourceDocumentChunk");
 
                     b.Navigation("SourceMaterial");
-
-                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("SFSSPlatform.Domain.StudyContent.TopicResourceLink", b =>

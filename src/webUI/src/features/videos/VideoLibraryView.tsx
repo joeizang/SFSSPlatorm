@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, ExternalLink, Film, RefreshCw, Save, Search } from 'lucide-react'
 import { Badge, EmptyState } from '../../components/shared'
+import type { TopicSearchResponse } from '../catalog/types'
 import { TrustedChannelsPanel } from './TrustedChannelsPanel'
 import { VideoCandidateQueuePanel } from './VideoCandidateQueuePanel'
 import type {
@@ -34,6 +35,7 @@ type VideoLibraryViewProps = {
   loading: boolean
   onCandidateAccept: (candidateId: number) => void
   onCandidateImport: () => void
+  onCandidateLinkToTopic: (candidateId: number) => void
   onCandidateReject: (candidateId: number) => void
   onCandidateSearch: (value: string) => void
   onCandidateStatusChange: (value: VideoCandidateStatus | 'all') => void
@@ -41,7 +43,12 @@ type VideoLibraryViewProps = {
   onChannelSearch: (value: string) => void
   onImport: () => void
   onSaveWatchState: (resourceId: number, isWatched: boolean, watchProgressSeconds: number, notes: string) => void
+  onSelectedTopicChange: (topicSlug: string) => void
+  onSelectedVideoLinkToTopic: (resourceId: number) => void
+  selectedTopicSlug: string
   saving: boolean
+  topicLinking: boolean
+  topics: TopicSearchResponse[]
   videos: LearningResourceResponse[]
 }
 
@@ -66,6 +73,7 @@ export function VideoLibraryView({
   loading,
   onCandidateAccept,
   onCandidateImport,
+  onCandidateLinkToTopic,
   onCandidateReject,
   onCandidateSearch,
   onCandidateStatusChange,
@@ -73,7 +81,12 @@ export function VideoLibraryView({
   onChannelSearch,
   onImport,
   onSaveWatchState,
+  onSelectedTopicChange,
+  onSelectedVideoLinkToTopic,
+  selectedTopicSlug,
   saving,
+  topicLinking,
+  topics,
   videos,
 }: VideoLibraryViewProps) {
   const [search, setSearch] = useState('')
@@ -157,12 +170,17 @@ export function VideoLibraryView({
         loading={candidateLoading}
         onAccept={onCandidateAccept}
         onImport={onCandidateImport}
+        onLinkToTopic={onCandidateLinkToTopic}
         onReject={onCandidateReject}
         onSearch={onCandidateSearch}
+        onSelectedTopicChange={onSelectedTopicChange}
         onStatusChange={onCandidateStatusChange}
         search={candidateSearch}
+        selectedTopicSlug={selectedTopicSlug}
         sourceFile={candidateSourceFile}
         status={candidateStatus}
+        topicLinking={topicLinking}
+        topics={topics}
         updating={candidateUpdating}
       />
 
@@ -185,13 +203,19 @@ export function VideoLibraryView({
           onChangeNotes={setNotes}
           onChangeProgressMinutes={setProgressMinutes}
           onChangeWatched={setIsWatched}
+          onLinkToTopic={() => {
+            if (!selectedVideo) return
+            onSelectedVideoLinkToTopic(selectedVideo.id)
+          }}
           onSave={() => {
             if (!selectedVideo) return
             onSaveWatchState(selectedVideo.id, isWatched, Math.max(0, Number(progressMinutes || 0) * 60), notes)
           }}
           progressMinutes={progressMinutes}
+          selectedTopicSlug={selectedTopicSlug}
           saving={saving}
           selectedVideo={selectedVideo}
+          topicLinking={topicLinking}
         />
       </div>
     </section>
@@ -330,20 +354,26 @@ function VideoNotesPane({
   onChangeNotes,
   onChangeProgressMinutes,
   onChangeWatched,
+  onLinkToTopic,
   onSave,
   progressMinutes,
+  selectedTopicSlug,
   saving,
   selectedVideo,
+  topicLinking,
 }: {
   isWatched: boolean
   notes: string
   onChangeNotes: (value: string) => void
   onChangeProgressMinutes: (value: string) => void
   onChangeWatched: (value: boolean) => void
+  onLinkToTopic: () => void
   onSave: () => void
   progressMinutes: string
+  selectedTopicSlug: string
   saving: boolean
   selectedVideo: LearningResourceResponse | null
+  topicLinking: boolean
 }) {
   return (
     <aside className="bg-[#0f1216] px-5 py-5">
@@ -391,6 +421,15 @@ function VideoNotesPane({
           >
             {saving ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             Save video notes
+          </button>
+
+          <button
+            className="focus-ring inline-flex h-9 w-full items-center justify-center rounded-md border border-cyan-800 px-3 text-sm font-medium text-cyan-100 hover:bg-cyan-950/40 disabled:cursor-not-allowed disabled:opacity-60"
+            type="button"
+            disabled={topicLinking || !selectedTopicSlug}
+            onClick={onLinkToTopic}
+          >
+            Link selected topic
           </button>
 
           {selectedVideo.isWatched && (

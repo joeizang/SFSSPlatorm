@@ -20,6 +20,30 @@ export type TopicSearchResponse = {
   taskTypes: TaskType[]
 }
 
+export type TopicDetailResponse = {
+  slug: string
+  title: string
+  summary: string | null
+  moduleSlug: string
+  moduleTitle: string
+  status: TopicProgressStatus
+  startedAt: string | null
+  completedAt: string | null
+  updatedAt: string
+  taskTypes: TaskType[]
+}
+
+export type TopicNoteResponse = {
+  topicSlug: string
+  content: string
+  createdAt: string
+  updatedAt: string
+}
+
+export type UpsertTopicNoteRequest = {
+  content: string
+}
+
 export type ModuleResponse = {
   slug: string
   title: string

@@ -1,5 +1,6 @@
 import { CheckCircle2, Clock3, Database, Search, SplitSquareVertical } from 'lucide-react'
 import { EmptyState, Metric } from '../../components/shared'
+import type { TopicResourceLinkResponse } from '../videos/types'
 import type { CatalogRollupsResponse, ModuleResponse, TaskType, TopicProgressStatus, TopicSearchResponse } from './types'
 
 type CatalogViewProps = {
@@ -9,9 +10,11 @@ type CatalogViewProps = {
   importPending: boolean
   modules: ModuleResponse[]
   onImport: () => void
+  onOpenTopic: (slug: string) => void
   onProgressChange: (slug: string, status: TopicProgressStatus) => void
   onSearch: (value: string) => void
   progressPending: boolean
+  resourceLinks: TopicResourceLinkResponse[]
   rollups: CatalogRollupsResponse | undefined
   search: string
   selectedModuleTitle: string
@@ -27,9 +30,11 @@ export function CatalogView({
   importPending,
   modules,
   onImport,
+  onOpenTopic,
   onProgressChange,
   onSearch,
   progressPending,
+  resourceLinks,
   rollups,
   search,
   selectedModuleTitle,
@@ -88,7 +93,9 @@ export function CatalogView({
           ) : (
             <TopicTable
               onProgressChange={onProgressChange}
+              onOpenTopic={onOpenTopic}
               progressPending={progressPending}
+              resourceLinks={resourceLinks}
               topics={topics}
             />
           )}
@@ -107,13 +114,24 @@ export function CatalogView({
 
 function TopicTable({
   onProgressChange,
+  onOpenTopic,
   progressPending,
+  resourceLinks,
   topics,
 }: {
   onProgressChange: (slug: string, status: TopicProgressStatus) => void
+  onOpenTopic: (slug: string) => void
   progressPending: boolean
+  resourceLinks: TopicResourceLinkResponse[]
   topics: TopicSearchResponse[]
 }) {
+  const linksByTopic = new Map<string, TopicResourceLinkResponse[]>()
+  for (const link of resourceLinks) {
+    const links = linksByTopic.get(link.topicSlug) ?? []
+    links.push(link)
+    linksByTopic.set(link.topicSlug, links)
+  }
+
   return (
     <div className="overflow-hidden rounded-md border border-zinc-800">
       <table className="w-full border-collapse text-left text-sm">
@@ -122,6 +140,7 @@ function TopicTable({
             <th className="px-4 py-3 font-medium">Topic</th>
             <th className="hidden px-4 py-3 font-medium md:table-cell">Module</th>
             <th className="hidden px-4 py-3 font-medium lg:table-cell">Task types</th>
+            <th className="hidden px-4 py-3 font-medium xl:table-cell">Resources</th>
             <th className="px-4 py-3 font-medium">Progress</th>
           </tr>
         </thead>
@@ -129,7 +148,13 @@ function TopicTable({
           {topics.map((topic) => (
             <tr key={topic.slug} className="border-t border-zinc-800 align-top">
               <td className="px-4 py-3">
-                <div className="font-medium text-slate-100">{topic.title}</div>
+                <button
+                  className="focus-ring rounded-sm text-left font-medium text-slate-100 hover:text-cyan-200"
+                  type="button"
+                  onClick={() => onOpenTopic(topic.slug)}
+                >
+                  {topic.title}
+                </button>
                 <div className="mt-1 max-w-2xl text-xs leading-5 text-slate-500">{topic.summary}</div>
               </td>
               <td className="hidden px-4 py-3 text-slate-400 md:table-cell">{topic.moduleTitle}</td>
@@ -142,6 +167,9 @@ function TopicTable({
                   ))}
                 </div>
               </td>
+              <td className="hidden px-4 py-3 xl:table-cell">
+                <TopicResources links={linksByTopic.get(topic.slug) ?? []} />
+              </td>
               <td className="px-4 py-3">
                 <ProgressSelect
                   disabled={progressPending}
@@ -153,6 +181,29 @@ function TopicTable({
           ))}
         </tbody>
       </table>
+    </div>
+  )
+}
+
+function TopicResources({ links }: { links: TopicResourceLinkResponse[] }) {
+  if (links.length === 0) {
+    return <span className="text-xs text-slate-600">No videos linked</span>
+  }
+
+  return (
+    <div className="max-w-xs space-y-1">
+      {links.slice(0, 3).map((link) => (
+        <a
+          key={link.id}
+          className="block truncate text-xs text-cyan-200 hover:text-cyan-100"
+          href={link.url}
+          rel="noreferrer"
+          target="_blank"
+        >
+          {link.title}
+        </a>
+      ))}
+      {links.length > 3 && <div className="text-xs text-slate-500">+{links.length - 3} more</div>}
     </div>
   )
 }

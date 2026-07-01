@@ -18,6 +18,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<CSharpExerciseAnalyzer>();
 builder.Services.AddStudyPlatformPersistence(builder.Configuration);
 builder.Services.AddCors(options =>
 {
@@ -41,12 +42,15 @@ app.UseHttpsRedirection();
 app.UseCors("WebUi");
 
 app.MapCatalogEndpoints();
+app.MapTopicNoteEndpoints();
 app.MapSourceEndpoints();
 app.MapStudyItemEndpoints();
+app.MapCodingExerciseEndpoints();
 app.MapStudySessionEndpoints();
 app.MapLearningResourceEndpoints();
 app.MapTrustedYouTubeChannelEndpoints();
 app.MapVideoCandidateEndpoints();
+app.MapTopicResourceLinkEndpoints();
 
 await app.InitializeDatabaseAsync();
 app.Run();

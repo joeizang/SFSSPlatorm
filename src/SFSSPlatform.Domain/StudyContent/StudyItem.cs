@@ -1,3 +1,5 @@
+using SFSSPlatform.Domain.Curriculum;
+
 namespace SFSSPlatform.Domain.StudyContent;
 
 public sealed class StudyItem
@@ -20,6 +22,7 @@ public sealed class StudyItem
     {
         SourceMaterialId = sourceMaterialId;
         SourceDocumentChunkId = sourceDocumentChunkId;
+        TopicId = null;
         Kind = kind;
         Prompt = Required(prompt);
         ExpectedAnswer = Required(expectedAnswer);
@@ -33,15 +36,44 @@ public sealed class StudyItem
         UpdatedAt = createdAt;
     }
 
+    public StudyItem(
+        int topicId,
+        StudyItemKind kind,
+        string prompt,
+        string expectedAnswer,
+        string explanation,
+        string sourceExcerpt,
+        DateTimeOffset createdAt)
+    {
+        SourceMaterialId = null;
+        SourceDocumentChunkId = null;
+        TopicId = topicId;
+        Kind = kind;
+        Prompt = Required(prompt);
+        ExpectedAnswer = Required(expectedAnswer);
+        Explanation = Required(explanation);
+        SourceExcerpt = Required(sourceExcerpt);
+        StartPage = 0;
+        EndPage = 0;
+        Status = StudyItemStatus.Active;
+        ConfidenceScore = 0;
+        CreatedAt = createdAt;
+        UpdatedAt = createdAt;
+    }
+
     public int Id { get; private set; }
 
-    public int SourceMaterialId { get; private set; }
+    public int? SourceMaterialId { get; private set; }
 
-    public SourceMaterial SourceMaterial { get; private set; } = null!;
+    public SourceMaterial? SourceMaterial { get; private set; }
 
-    public int SourceDocumentChunkId { get; private set; }
+    public int? SourceDocumentChunkId { get; private set; }
 
-    public SourceDocumentChunk SourceDocumentChunk { get; private set; } = null!;
+    public SourceDocumentChunk? SourceDocumentChunk { get; private set; }
+
+    public int? TopicId { get; private set; }
+
+    public Topic? Topic { get; private set; }
 
     public StudyItemKind Kind { get; private set; }
 

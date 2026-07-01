@@ -1,5 +1,6 @@
 import { Check, ExternalLink, RefreshCw, Search, X } from 'lucide-react'
 import { Badge, EmptyState } from '../../components/shared'
+import type { TopicSearchResponse } from '../catalog/types'
 import type { VideoCandidateImportResult, VideoCandidateResponse, VideoCandidateStatus } from './types'
 
 type VideoCandidateQueuePanelProps = {
@@ -9,12 +10,17 @@ type VideoCandidateQueuePanelProps = {
   loading: boolean
   onAccept: (candidateId: number) => void
   onImport: () => void
+  onLinkToTopic: (candidateId: number) => void
   onReject: (candidateId: number) => void
   onSearch: (value: string) => void
+  onSelectedTopicChange: (topicSlug: string) => void
   onStatusChange: (value: VideoCandidateStatus | 'all') => void
   search: string
+  selectedTopicSlug: string
   sourceFile: string | null
   status: VideoCandidateStatus | 'all'
+  topicLinking: boolean
+  topics: TopicSearchResponse[]
   updating: boolean
 }
 
@@ -25,12 +31,17 @@ export function VideoCandidateQueuePanel({
   loading,
   onAccept,
   onImport,
+  onLinkToTopic,
   onReject,
   onSearch,
+  onSelectedTopicChange,
   onStatusChange,
   search,
+  selectedTopicSlug,
   sourceFile,
   status,
+  topicLinking,
+  topics,
   updating,
 }: VideoCandidateQueuePanelProps) {
   return (
@@ -53,6 +64,18 @@ export function VideoCandidateQueuePanel({
               onChange={(event) => onSearch(event.target.value)}
             />
           </label>
+          <select
+            className="focus-ring h-9 rounded-md border border-zinc-800 bg-[#11151a] px-2 text-sm text-slate-200 xl:w-72"
+            value={selectedTopicSlug}
+            onChange={(event) => onSelectedTopicChange(event.target.value)}
+          >
+            <option value="">Select topic</option>
+            {topics.map((topic) => (
+              <option key={topic.slug} value={topic.slug}>
+                {topic.title}
+              </option>
+            ))}
+          </select>
           <div className="flex gap-1">
             {(['all', 'candidate', 'accepted', 'rejected'] as const).map((value) => (
               <button
@@ -122,6 +145,14 @@ export function VideoCandidateQueuePanel({
                   >
                     <Check className="mr-1.5 h-3.5 w-3.5" />
                     Accept
+                  </button>
+                  <button
+                    className="focus-ring inline-flex h-8 flex-1 items-center justify-center rounded-md border border-cyan-800 px-2 text-xs font-medium text-cyan-100 hover:bg-cyan-950/40 disabled:cursor-not-allowed disabled:opacity-60"
+                    type="button"
+                    disabled={topicLinking || !selectedTopicSlug}
+                    onClick={() => onLinkToTopic(candidate.id)}
+                  >
+                    Link topic
                   </button>
                   <button
                     className="focus-ring inline-flex h-8 flex-1 items-center justify-center rounded-md border border-zinc-700 px-2 text-xs font-medium text-slate-300 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"

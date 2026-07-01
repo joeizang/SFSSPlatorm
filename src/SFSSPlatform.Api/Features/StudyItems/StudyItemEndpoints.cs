@@ -15,6 +15,9 @@ public static class StudyItemEndpoints
         group.MapPost("/generate", GenerateAsync)
             .WithName("GenerateStudyItems");
 
+        group.MapPost("/generate-for-topic", GenerateForTopicAsync)
+            .WithName("GenerateTopicStudyItems");
+
         group.MapPost("/", CreateAsync)
             .WithName("CreateStudyItems");
 
@@ -55,9 +58,52 @@ public static class StudyItemEndpoints
         var response = new GeneratedStudyItemsResponse(
             chunk.Id,
             chunk.SourceMaterialId,
+            null,
+            null,
             chunk.Title,
             chunk.StartPage,
             chunk.EndPage,
+            drafts.Select(draft => new StudyItemDraftResponse(
+                draft.Kind,
+                draft.Prompt,
+                draft.ExpectedAnswer,
+                draft.Explanation,
+                draft.SourceExcerpt)).ToList());
+
+        return TypedResults.Ok(response);
+    }
+
+    private static async Task<Results<Ok<GeneratedStudyItemsResponse>, NotFound>> GenerateForTopicAsync(
+        GenerateTopicStudyItemsRequest request,
+        StudyPlatformDbContext db,
+        StudyItemGenerator generator,
+        CancellationToken cancellationToken)
+    {
+        var topic = await db.Topics
+            .AsNoTracking()
+            .Where(topic => topic.Slug == request.TopicSlug)
+            .Select(topic => new
+            {
+                topic.Id,
+                topic.Slug,
+                topic.Title
+            })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (topic is null)
+        {
+            return TypedResults.NotFound();
+        }
+
+        var drafts = await generator.GenerateForTopicAsync(request.TopicSlug, cancellationToken);
+        var response = new GeneratedStudyItemsResponse(
+            null,
+            null,
+            topic.Slug,
+            topic.Title,
+            topic.Title,
+            0,
+            0,
             drafts.Select(draft => new StudyItemDraftResponse(
                 draft.Kind,
                 draft.Prompt,
@@ -74,43 +120,104 @@ public static class StudyItemEndpoints
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
-        var chunk = await db.SourceDocumentChunks
-            .AsNoTracking()
-            .Where(sourceChunk => sourceChunk.Id == request.SourceDocumentChunkId)
-            .Select(sourceChunk => new
-            {
-                sourceChunk.Id,
-                sourceChunk.SourceMaterialId,
-                sourceChunk.StartPage,
-                sourceChunk.EndPage
-            })
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (chunk is null)
+        if (request.SourceDocumentChunkId is null && string.IsNullOrWhiteSpace(request.TopicSlug))
         {
             return TypedResults.NotFound();
         }
 
         var now = timeProvider.GetUtcNow();
-        var items = request.Items
-            .Where(item => !string.IsNullOrWhiteSpace(item.Prompt) && !string.IsNullOrWhiteSpace(item.ExpectedAnswer))
-            .Select(item => new StudyItem(
-                chunk.SourceMaterialId,
-                chunk.Id,
+        List<StudyItem> items;
+
+        if (request.SourceDocumentChunkId is not null)
+        {
+            var chunk = await db.SourceDocumentChunks
+                .AsNoTracking()
+                .Where(sourceChunk => sourceChunk.Id == request.SourceDocumentChunkId)
+                .Select(sourceChunk => new
+                {
+                    sourceChunk.Id,
+                    sourceChunk.SourceMaterialId,
+                    sourceChunk.StartPage,
+                    sourceChunk.EndPage
+                })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (chunk is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            items = request.Items
+                .Where(item => !string.IsNullOrWhiteSpace(item.Prompt) && !string.IsNullOrWhiteSpace(item.ExpectedAnswer))
+                .Select(item => new StudyItem(
+                    chunk.SourceMaterialId,
+                    chunk.Id,
+                    item.Kind,
+                    item.Prompt,
+                    item.ExpectedAnswer,
+                    item.Explanation,
+                    item.SourceExcerpt,
+                    chunk.StartPage,
+                    chunk.EndPage,
+                    now))
+                .ToList();
+        }
+        else
+        {
+            var topic = await db.Topics
+                .AsNoTracking()
+                .Where(topic => topic.Slug == request.TopicSlug)
+                .Select(topic => new { topic.Id })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (topic is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            items = request.Items
+                .Where(item => !string.IsNullOrWhiteSpace(item.Prompt) && !string.IsNullOrWhiteSpace(item.ExpectedAnswer))
+                .Select(item => new StudyItem(
+                    topic.Id,
+                    item.Kind,
+                    item.Prompt,
+                    item.ExpectedAnswer,
+                    item.Explanation,
+                    item.SourceExcerpt,
+                    now))
+                .ToList();
+        }
+
+        db.StudyItems.AddRange(items);
+        await db.SaveChangesAsync(cancellationToken);
+
+        var itemIds = items.Select(item => item.Id).ToList();
+        var responses = await db.StudyItems
+            .AsNoTracking()
+            .Include(item => item.Topic)
+            .Where(item => itemIds.Contains(item.Id))
+            .OrderBy(item => item.Id)
+            .Select(item => new StudyItemResponse(
+                item.Id,
+                item.SourceMaterialId,
+                item.SourceDocumentChunkId,
+                item.Topic != null ? item.Topic.Slug : null,
+                item.Topic != null ? item.Topic.Title : null,
                 item.Kind,
                 item.Prompt,
                 item.ExpectedAnswer,
                 item.Explanation,
                 item.SourceExcerpt,
-                chunk.StartPage,
-                chunk.EndPage,
-                now))
-            .ToList();
-
-        db.StudyItems.AddRange(items);
-        await db.SaveChangesAsync(cancellationToken);
-
-        var responses = items.Select(ToResponse).ToList();
+                item.StartPage,
+                item.EndPage,
+                item.Status,
+                item.AttemptCount,
+                item.ConfidenceScore,
+                item.LastAttemptAt,
+                item.NextReviewAt,
+                item.CreatedAt,
+                item.UpdatedAt))
+            .ToListAsync(cancellationToken);
         return TypedResults.Ok<IReadOnlyCollection<StudyItemResponse>>(responses);
     }
 
@@ -118,13 +225,22 @@ public static class StudyItemEndpoints
         StudyPlatformDbContext db,
         CancellationToken cancellationToken,
         int? sourceDocumentChunkId = null,
+        string? topicSlug = null,
         string? status = null)
     {
-        var query = db.StudyItems.AsNoTracking();
+        var query = db.StudyItems.AsNoTracking()
+            .Include(item => item.Topic)
+            .AsQueryable();
 
         if (sourceDocumentChunkId is not null)
         {
             query = query.Where(item => item.SourceDocumentChunkId == sourceDocumentChunkId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(topicSlug))
+        {
+            var normalizedTopicSlug = topicSlug.Trim();
+            query = query.Where(item => item.Topic != null && item.Topic.Slug == normalizedTopicSlug);
         }
 
         if (!string.IsNullOrWhiteSpace(status)
@@ -139,6 +255,8 @@ public static class StudyItemEndpoints
                 item.Id,
                 item.SourceMaterialId,
                 item.SourceDocumentChunkId,
+                item.Topic != null ? item.Topic.Slug : null,
+                item.Topic != null ? item.Topic.Title : null,
                 item.Kind,
                 item.Prompt,
                 item.ExpectedAnswer,
@@ -189,6 +307,8 @@ public static class StudyItemEndpoints
             item.Id,
             item.SourceMaterialId,
             item.SourceDocumentChunkId,
+            item.Topic?.Slug,
+            item.Topic?.Title,
             item.Kind,
             item.Prompt,
             item.ExpectedAnswer,
@@ -208,9 +328,13 @@ public static class StudyItemEndpoints
 
 public sealed record GenerateStudyItemsRequest(int SourceDocumentChunkId);
 
+public sealed record GenerateTopicStudyItemsRequest(string TopicSlug);
+
 public sealed record GeneratedStudyItemsResponse(
-    int SourceDocumentChunkId,
-    int SourceMaterialId,
+    int? SourceDocumentChunkId,
+    int? SourceMaterialId,
+    string? TopicSlug,
+    string? TopicTitle,
     string SourceTitle,
     int StartPage,
     int EndPage,
@@ -224,7 +348,8 @@ public sealed record StudyItemDraftResponse(
     string SourceExcerpt);
 
 public sealed record CreateStudyItemsRequest(
-    int SourceDocumentChunkId,
+    int? SourceDocumentChunkId,
+    string? TopicSlug,
     IReadOnlyCollection<CreateStudyItemRequest> Items);
 
 public sealed record CreateStudyItemRequest(
@@ -243,8 +368,10 @@ public sealed record UpdateStudyItemRequest(
 
 public sealed record StudyItemResponse(
     int Id,
-    int SourceMaterialId,
-    int SourceDocumentChunkId,
+    int? SourceMaterialId,
+    int? SourceDocumentChunkId,
+    string? TopicSlug,
+    string? TopicTitle,
     StudyItemKind Kind,
     string Prompt,
     string ExpectedAnswer,
